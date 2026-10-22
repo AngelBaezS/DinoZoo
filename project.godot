@@ -24,6 +24,10 @@ XRToolsRumbleManager="*uid://by853dk86g1qw"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[dotnet]
+
+project/assembly_name="DinoZoo"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot-xr-tools/plugin.cfg")
