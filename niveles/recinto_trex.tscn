@@ -1,0 +1,144 @@
+[gd_scene format=3 uid="uid://cfi4e6bupef5s"]
+
+[ext_resource type="PackedScene" uid="uid://nniqk31opkl5" path="res://assets/ambiente/Escene.glb" id="1_jbvyt"]
+[ext_resource type="Script" uid="uid://c62g1j0jl0r5v" path="res://niveles/recinto_trex.gd" id="1_s5ibe"]
+[ext_resource type="PackedScene" uid="uid://dwa64vqi5f0hf" path="res://entidades/dinosaurios/T-rex.glb" id="2_0y86f"]
+[ext_resource type="PackedScene" uid="uid://bsx6ud7pfwkq3" path="res://assets/vegetacion/Tree_2-col.glb" id="3_bijgj"]
+[ext_resource type="Script" uid="uid://4texp6tbadvd" path="res://entidades/dinosaurios/t_rex.gd" id="4_0f3jc"]
+[ext_resource type="PackedScene" uid="uid://kvx66rqfhjse" path="res://assets/vegetacion/Tree_3-col.glb" id="4_ehyau"]
+[ext_resource type="PackedScene" uid="uid://btt616tngukao" path="res://assets/vegetacion/Tree_4-col.glb" id="5_hmp81"]
+[ext_resource type="PackedScene" uid="uid://ct6siguhbxmwp" path="res://assets/vegetacion/Tree_5-col.glb" id="6_bklu4"]
+[ext_resource type="PackedScene" uid="uid://fg6ooy8dnhax" path="res://assets/vegetacion/Tree_6-col.glb" id="7_h2ey6"]
+[ext_resource type="PackedScene" uid="uid://b4kad2kuba1yn" path="res://addons/godot-xr-tools/hands/scenes/lowpoly/left_hand_low.tscn" id="9_0f3jc"]
+[ext_resource type="PackedScene" uid="uid://bl2nuu3qhlb5k" path="res://addons/godot-xr-tools/functions/movement_direct.tscn" id="10_qrruo"]
+[ext_resource type="PackedScene" uid="uid://l2n30mpbkdyw" path="res://addons/godot-xr-tools/hands/scenes/lowpoly/right_hand_low.tscn" id="11_d7b4j"]
+[ext_resource type="PackedScene" uid="uid://b6bk2pj8vbj28" path="res://addons/godot-xr-tools/functions/movement_turn.tscn" id="12_3dr8u"]
+[ext_resource type="PackedScene" uid="uid://diyu06cw06syv" path="res://addons/godot-xr-tools/player/player_body.tscn" id="13_lkvl1"]
+[ext_resource type="PackedScene" uid="uid://ctltchlf2j2r4" path="res://addons/xr-simulator/XRSimulator.tscn" id="15_qrruo"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5ibe"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_0f3jc"]
+sky_material = SubResource("ProceduralSkyMaterial_s5ibe")
+
+[sub_resource type="Environment" id="Environment_qrruo"]
+background_mode = 2
+sky = SubResource("Sky_0f3jc")
+
+[node name="Main" type="Node3D" unique_id=2076654835]
+script = ExtResource("1_s5ibe")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1996202881]
+environment = SubResource("Environment_qrruo")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=509745608]
+transform = Transform3D(-0.83942795, 0.27830866, 0.46680307, 0.1536714, -0.70232815, 0.6950684, 0.5212925, 0.65519404, 0.5467858, 0, 0, 0)
+light_color = Color(0.82316434, 0.7989364, 0.72582483, 1)
+light_energy = 1.449
+light_indirect_energy = 1.449
+light_volumetric_fog_energy = 0.0
+light_specular = 0.939
+shadow_enabled = true
+shadow_bias = 0.325
+directional_shadow_max_distance = 164.0
+
+[node name="Escene" parent="." unique_id=342140533 instance=ExtResource("1_jbvyt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12997258, 0.022521019, 0.07067704)
+
+[node name="T-rex2" parent="." unique_id=2129972396 instance=ExtResource("2_0y86f")]
+transform = Transform3D(0.99912083, 0, -0.0419254, 0, 1, 0, 0.0419254, 0, 0.99912083, 0.42730594, 1.8260033, 6.861662)
+script = ExtResource("4_0f3jc")
+
+[node name="Skeleton3D" parent="T-rex2/Esqueleto" parent_id_path=PackedInt32Array(2129972396, 1881943581) index="1" unique_id=1334353227]
+bones/3/position = Vector3(-0.7515136, 0.2070012, -0.022456719)
+bones/3/rotation = Quaternion(0.041166056, 0.018330425, 0.9989459, 0.008742177)
+bones/4/position = Vector3(0.020388452, -0.108749405, 0.75319487)
+bones/5/position = Vector3(0.7515136, 0.2070012, -0.022456719)
+bones/5/rotation = Quaternion(-0.041166056, 0.018330425, 0.9989459, -0.008742177)
+bones/6/position = Vector3(-0.020388452, -0.108749405, 0.75319487)
+bones/7/position = Vector3(-0.7396956, 3.1124156, 1.3421277)
+bones/7/rotation = Quaternion(-0.46923503, -0.7618549, 0.20333326, 0.39755672)
+bones/8/position = Vector3(0.73794156, 3.1106615, 1.3393781)
+bones/8/rotation = Quaternion(-0.29375675, 0.854298, -0.26683277, 0.33568177)
+bones/9/rotation = Quaternion(-7.474151e-10, 0.999951, 0.009899811, -7.5494206e-08)
+bones/11/position = Vector3(-0.0064332793, 0.62812877, 2.6047897)
+bones/11/rotation = Quaternion(2.306663e-09, 0.9995332, -0.030552682, -7.5462665e-08)
+bones/12/rotation = Quaternion(-0.056278072, 4.3642626e-08, -1.0957773e-08, 0.99841523)
+bones/13/rotation = Quaternion(-0.20103306, 7.651239e-10, -4.3840192e-08, 0.9795845)
+bones/14/rotation = Quaternion(0.21913882, 0.016804542, 0.0047110785, 0.97553766)
+bones/15/position = Vector3(0.012513066, 0.19897294, 0.5746466)
+bones/15/rotation = Quaternion(0.03950284, -0.002092242, -0.008514654, 0.999181)
+bones/16/rotation = Quaternion(0.952932, -0.02252363, 0.0061933, 0.302283)
+bones/17/rotation = Quaternion(-0.78147364, -0.028526615, -0.031763818, 0.62247604)
+bones/18/rotation = Quaternion(0.0805208, 0.47463349, 0.4456366, 0.7547501)
+bones/19/rotation = Quaternion(0.9564708, 0.01993407, -0.0027126085, 0.2911339)
+bones/20/rotation = Quaternion(-0.78489363, 0.022921722, 0.024993675, 0.61870193)
+bones/21/rotation = Quaternion(0.12859048, -0.39157403, -0.276677, 0.86809224)
+bones/22/rotation = Quaternion(0.9813826, 0.02569924, 0.048999444, 0.18392104)
+bones/23/rotation = Quaternion(0.1423749, 0.04043115, -0.008795792, 0.98894763)
+bones/24/rotation = Quaternion(0.15958744, 0.026466403, -0.01225332, 0.98675287)
+bones/25/rotation = Quaternion(0.1720663, 0.012500765, -0.015685914, 0.98488116)
+bones/26/rotation = Quaternion(0.25488976, -0.0034437892, -0.017639391, 0.96680313)
+bones/27/rotation = Quaternion(0.014112652, -0.008883562, -0.013430892, 0.99977076)
+bones/28/rotation = Quaternion(-0.17429794, -0.0060014366, -0.010671266, 0.9846169)
+bones/29/rotation = Quaternion(-0.069050595, -0.0030075777, -0.009011153, 0.997568)
+bones/30/rotation = Quaternion(-0.17280942, -0.0011452829, -0.005933694, 0.9849368)
+bones/31/position = Vector3(0.0022059658, -0.50284, 0.12253235)
+bones/31/rotation = Quaternion(0.97390765, 0.10588456, -0.028437734, -0.19870527)
+bones/32/position = Vector3(0.016487991, 2.3016636, -1.2282277)
+bones/33/position = Vector3(0.03999998, 1.4254432, 0.5947371)
+bones/34/rotation = Quaternion(0.44807607, 0.07951548, -0.15280887, 0.8772426)
+bones/35/rotation = Quaternion(0.67017514, 0.11020054, 0.12739038, 0.7228367)
+bones/36/rotation = Quaternion(-0.3658635, -0.016284754, -0.02448039, 0.93020403)
+bones/41/rotation = Quaternion(0.44807595, -0.07951564, 0.15280902, 0.8772427)
+bones/42/rotation = Quaternion(0.6701752, -0.11020052, -0.12739056, 0.7228366)
+bones/43/rotation = Quaternion(-0.3658635, 0.016284779, 0.02448046, 0.930204)
+
+[node name="AnimationPlayer" parent="T-rex2" index="1" unique_id=1021854970]
+autoplay = &"idle"
+
+[node name="Tree_2-col" parent="." unique_id=119607314 instance=ExtResource("3_bijgj")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 14.342113, 8.5153475, 0.29185677)
+
+[node name="Tree_3-col" parent="." unique_id=926119167 instance=ExtResource("4_ehyau")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -13.170644, -0.53783226, 2.6614823)
+
+[node name="Tree_4-col" parent="." unique_id=1531811658 instance=ExtResource("5_hmp81")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 6.9241896, 9.76632, -26.332516)
+
+[node name="Tree_5-col" parent="." unique_id=56821557 instance=ExtResource("6_bklu4")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -11.34904, 9.886456, -27.62278)
+
+[node name="Tree_6-col" parent="." unique_id=1551670417 instance=ExtResource("7_h2ey6")]
+transform = Transform3D(-0.73116606, 0, -9.973234, 0, 10, 0, 9.973234, 0, -0.73116606, 16.372982, 7.6208506, 12.690554)
+
+[node name="XROrigin3D" type="XROrigin3D" parent="." unique_id=786021153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0552297, 20.238037)
+current = true
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D" unique_id=2048998110]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.29288244, 0)
+
+[node name="ManoIzquierda" type="XRController3D" parent="XROrigin3D" unique_id=1698350716]
+tracker = &"left_hand"
+
+[node name="LeftHand" parent="XROrigin3D/ManoIzquierda" unique_id=1156022051 instance=ExtResource("9_0f3jc")]
+
+[node name="MovementDirect" parent="XROrigin3D/ManoIzquierda" unique_id=2084497732 instance=ExtResource("10_qrruo")]
+
+[node name="ManoDerecha" type="XRController3D" parent="XROrigin3D" unique_id=506775297]
+tracker = &"right_hand"
+
+[node name="RightHand" parent="XROrigin3D/ManoDerecha" unique_id=1210153512 instance=ExtResource("11_d7b4j")]
+
+[node name="MovementTurn" parent="XROrigin3D/ManoDerecha" unique_id=608500670 instance=ExtResource("12_3dr8u")]
+
+[node name="PlayerBody" parent="XROrigin3D" unique_id=1869621424 instance=ExtResource("13_lkvl1")]
+player_height_min = 1.0
+player_height_max = 2.2
+
+[node name="XRSimulator" parent="." unique_id=31396297 instance=ExtResource("15_qrruo")]
+
+[editable path="T-rex2"]
