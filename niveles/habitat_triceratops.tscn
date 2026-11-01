@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://bqbo1scyfkggo"]
+
+[ext_resource type="Script" uid="uid://ci06gakmx53vy" path="res://scripts/controladores/controlador_habitat_triceratops.gd" id="1_test_ctrl"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_triceratops.tscn" id="2_tri_dino"]
+[ext_resource type="PackedScene" uid="uid://pyhnoxuwkjy3" path="res://assets/habitats/dinosaur_enclosure_50x50.glb" id="3_enclosure"]
+
+[sub_resource type="Environment" id="Environment_tri"]
+background_mode = 1
+background_color = Color(0.93, 0.93, 0.94, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.58, 0.62, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 3
+tonemap_exposure = 1.02
+tonemap_white = 1.2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08, 0.11, 0.14, 0.84)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="HabitatTriceratops" type="Node3D" unique_id=370700076]
+script = ExtResource("1_test_ctrl")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1886720888]
+environment = SubResource("Environment_tri")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=926507916]
+transform = Transform3D(-0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, 0.5, -0.5, -15, 25, -15)
+light_color = Color(1, 0.98, 0.94, 1)
+light_energy = 0.95
+shadow_enabled = true
+shadow_bias = 0.03
+shadow_blur = 1.8
+
+[node name="Enclosure" parent="." unique_id=731888457 instance=ExtResource("3_enclosure")]
+
+[node name="DinoTriceratops" parent="." unique_id=173043277 instance=ExtResource("2_tri_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="DinoTriceratops2" parent="." unique_id=2129704282 instance=ExtResource("2_tri_dino")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.5, 0.5, 5.5)
+
+[node name="DinoTriceratops3" parent="." unique_id=2004267288 instance=ExtResource("2_tri_dino")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, -7.5, -0.9857812, 6.5)
+
+[node name="DinoTriceratops4" parent="." unique_id=996538944 instance=ExtResource("2_tri_dino")]
+transform = Transform3D(-0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, -0.5, 3.5, 3.2759476, -8.5)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=2114516231]
+transform = Transform3D(0.7071068, -0.40557995, 0.57922786, 0, 0.8191519, 0.5735767, -0.7071068, -0.40557995, 0.57922786, 33, 28, 35)
+current = true
+fov = 36.0
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1395307569]
+
+[node name="Panel" type="PanelContainer" parent="UI" unique_id=731284806]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -490.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 265.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel" unique_id=1744257632]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/Panel/VBox" unique_id=1362660136]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "🌿 Recinto de Triceratops 50x50m (Manada Autónoma)"
+horizontal_alignment = 1
+
+[node name="CamLabel" type="Label" parent="UI/Panel/VBox" unique_id=432739396]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+text = "Cámara Sandbox: Modo Vuelo Libre (WASD + Espacio/Shift)"
+
+[node name="BrainLabel" type="Label" parent="UI/Panel/VBox" unique_id=486134792]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
+text = "Cerebro Manada: 🟢 Triceratops Autónomos | Colisión Activa"
+
+[node name="Controls" type="Label" parent="UI/Panel/VBox" unique_id=887071079]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "• [W, A, S, D]: Mover cámara sandbox (Adelante, Izquierda, Atrás, Derecha)
+• [Espacio / Shift]: Elevar / Descender cámara
+• [Clic Derecho + Mover]: Rotar vista libremente en 360°
+• [Rueda Ratón]: Ajustar velocidad de vuelo
+• [Clic Izquierdo]: Lanzar alimento / vegetación al recinto
+• [1 / 2 / 3]: Vistas rápidas (1: Panorámica | 2: Mirador | 3: Estanque de Agua)
+• [H]: Ocultar / Mostrar HUD | [R]: Reubicar dinosaurios
+• [F1 / F2]: Cambiar Hábitat (F1: Mosasaurio | F2: Triceratops)
+• [ESC]: Volver al Menú Principal"

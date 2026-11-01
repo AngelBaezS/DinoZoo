@@ -1,0 +1,60 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/dinosaurios/dino_swimmer.gd" id="1_dino_swimmer"]
+[ext_resource type="PackedScene" path="res://assets/modelos/Mosasaurus.glb" id="2_mosa_model"]
+[ext_resource type="Shader" path="res://materiales/shaders/dino_foam_ring.gdshader" id="3_foam_shader"]
+[ext_resource type="Script" path="res://scripts/agua/foam_ring_controller.gd" id="4_foam_ctrl"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dino"]
+radius = 2.4
+height = 14.0
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_foam"]
+noise_type = 2
+frequency = 0.05
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_foam"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("FastNoiseLite_foam")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_foam"]
+render_priority = 0
+shader = ExtResource("3_foam_shader")
+shader_parameter/foam_color = Color(0.92, 0.97, 1, 1)
+shader_parameter/water_base_y = 0.0
+shader_parameter/wave_a = Vector4(1, 0.2, 0.25, 4)
+shader_parameter/wave_b = Vector4(0.3, 0.8, 0.18, 2.5)
+shader_parameter/ring_shape_scale = Vector2(2, 0.75)
+shader_parameter/ring_offset = Vector2(0, 0)
+shader_parameter/inner_radius = 0.1
+shader_parameter/outer_radius = 0.44
+shader_parameter/foam_intensity = 1.0
+shader_parameter/noise_tex = SubResource("NoiseTexture2D_foam")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_foam"]
+size = Vector2(16, 26)
+subdivide_width = 32
+subdivide_depth = 48
+
+[node name="DinoMosasaurus" type="CharacterBody3D"]
+script = ExtResource("1_dino_swimmer")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_dino")
+
+[node name="VisualModel" type="Node3D" parent="."]
+transform = Transform3D(-7.5, 0, -6.55671e-07, 0, 7.5, 0, 6.55671e-07, 0, -7.5, 0, 0, 0)
+
+[node name="Mosasaurus" parent="VisualModel" instance=ExtResource("2_mosa_model")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+
+[node name="FoamRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.105, 0)
+material_override = SubResource("ShaderMaterial_foam")
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_foam")
+script = ExtResource("4_foam_ctrl")
+

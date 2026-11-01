@@ -1,0 +1,107 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/controladores/controlador_main.gd" id="1_main_ctrl"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_horizon_color = Color(0.66, 0.67, 0.69, 1)
+ground_horizon_color = Color(0.66, 0.67, 0.69, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.75, 0.8, 1)
+ambient_light_energy = 0.8
+tonemap_mode = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
+bg_color = Color(0.1, 0.13, 0.17, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main_ctrl")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 10, 0)
+light_color = Color(1, 0.98, 0.92, 1)
+light_energy = 0.9
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 4, 10)
+current = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="CenterContainer" type="CenterContainer" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="UI/CenterContainer"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer/Card"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="UI/CenterContainer/Card/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🦕 DINO ZOO — SIMULADOR DE HÁBITATS"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="UI/CenterContainer/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "Selecciona un hábitat o usa los atajos rápidos del teclado:"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="UI/CenterContainer/Card/VBox"]
+layout_mode = 2
+
+[node name="BtnMosa" type="Button" parent="UI/CenterContainer/Card/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🌊 Hábitat Mosasaurus (Acuario 100x100m)  [F1]"
+
+[node name="BtnTri" type="Button" parent="UI/CenterContainer/Card/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🌿 Hábitat Triceratops (Recinto 50x50m)  [F2]"
+
+[node name="HSeparator2" type="HSeparator" parent="UI/CenterContainer/Card/VBox"]
+layout_mode = 2
+
+[node name="Info" type="Label" parent="UI/CenterContainer/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "• Mosasaurio: Nado ondulante procedural, anillo de espuma, caza de alimento.
+• Triceratops: Adaptación anatómica a pendientes (4 sondas), evitación frontal.
+• Estanque de agua: Transparente, con oleaje, 100% atravesable.
+• En cualquier hábitat presiona [F1] o [F2] para alternar, o [ESC] para volver aquí."
+autowrap_mode = 2
+
+[connection signal="pressed" from="UI/CenterContainer/Card/VBox/BtnMosa" to="." method="cargar_habitat_mosasaurus"]
+[connection signal="pressed" from="UI/CenterContainer/Card/VBox/BtnTri" to="." method="cargar_habitat_triceratops"]
+

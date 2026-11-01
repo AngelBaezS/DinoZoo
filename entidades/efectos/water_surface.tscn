@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://materiales/shaders/quest_water.gdshader" id="1_water_shader"]
+[ext_resource type="Script" path="res://scripts/agua/water_manager.gd" id="2_water_mgr"]
+[ext_resource type="PackedScene" path="res://entidades/efectos/splash_burst.tscn" id="3_splash"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+render_priority = 0
+shader = ExtResource("1_water_shader")
+shader_parameter/shallow_color = Color(0.12, 0.58, 0.72, 1)
+shader_parameter/deep_color = Color(0.03, 0.18, 0.32, 1)
+shader_parameter/foam_color = Color(0.92, 0.96, 1, 1)
+shader_parameter/water_transparency = 0.38
+shader_parameter/wave_a = Vector4(1, 0.2, 0.05, 18)
+shader_parameter/wave_b = Vector4(0.3, 0.8, 0.03, 12)
+shader_parameter/ripple_speed = 6.0
+shader_parameter/ripple_frequency = 2.5
+shader_parameter/ripple_decay = 0.45
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_water"]
+material = SubResource("ShaderMaterial_water")
+size = Vector2(88, 88)
+subdivide_width = 160
+subdivide_depth = 160
+
+[node name="WaterSurface" type="MeshInstance3D"]
+mesh = SubResource("PlaneMesh_water")
+surface_material_override/0 = SubResource("ShaderMaterial_water")
+script = ExtResource("2_water_mgr")
+splash_particles_scene = ExtResource("3_splash")
+wave_a = Vector4(1, 0.2, 0.05, 18)
+wave_b = Vector4(0.3, 0.8, 0.03, 12)
+

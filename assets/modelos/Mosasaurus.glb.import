@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bn7xvy28dnmru"
-path="res://.godot/imported/Titanosaurus.glb-69f0180ff94622021ea9d2517d2a9687.scn"
+uid="uid://ctpahms2lr0o7"
+path="res://.godot/imported/Mosasaurus.glb-cd41345a24789922075a97a70bfe33e7.scn"
 
 [deps]
 
-source_file="res://entidades/dinosaurios/Titanosaurus.glb"
-dest_files=["res://.godot/imported/Titanosaurus.glb-69f0180ff94622021ea9d2517d2a9687.scn"]
+source_file="res://assets/modelos/Mosasaurus.glb"
+dest_files=["res://.godot/imported/Mosasaurus.glb-cd41345a24789922075a97a70bfe33e7.scn"]
 
 [params]
 

@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/dinosaurios/dino_food.gd" id="1_food_script"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_food"]
+radius = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_meat"]
+albedo_color = Color(0.78, 0.22, 0.18, 1)
+roughness = 0.4
+metallic = 0.1
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_meat"]
+material = SubResource("StandardMaterial3D_meat")
+radius = 0.22
+height = 0.65
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bone"]
+albedo_color = Color(0.92, 0.9, 0.82, 1)
+roughness = 0.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bone"]
+material = SubResource("StandardMaterial3D_bone")
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.9
+
+[node name="DinoFood" type="RigidBody3D" groups=["dino_food"]]
+collision_layer = 4
+collision_mask = 1
+mass = 2.0
+continuous_cd = true
+script = ExtResource("1_food_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_food")
+
+[node name="VisualMeat" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_meat")
+
+[node name="VisualBone" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 0, 0, 0)
+mesh = SubResource("CylinderMesh_bone")
+

@@ -1,0 +1,108 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/controladores/controlador_habitat_mosasaurus.gd" id="1_test_ctrl"]
+[ext_resource type="PackedScene" path="res://entidades/efectos/water_surface.tscn" id="2_water"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_mosasaurus.tscn" id="3_dino"]
+[ext_resource type="PackedScene" path="res://assets/habitats/dinosaur_paddock_100x100.glb" id="4_paddock"]
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 1
+background_color = Color(0.895, 0.89, 0.898, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.64, 0.68, 1)
+ambient_light_energy = 0.72
+tonemap_mode = 3
+tonemap_exposure = 0.95
+tonemap_white = 1.2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08, 0.11, 0.14, 0.84)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="HabitatMosasaurus" type="Node3D"]
+script = ExtResource("1_test_ctrl")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.637264, 0.569452, -0.519248, 0, 0.673783, 0.738929, 0.770645, 0.470893, -0.429378, -30, 60, -30)
+light_color = Color(1, 0.96, 0.9, 1)
+light_energy = 0.75
+light_indirect_energy = 0.45
+light_specular = 0.08
+shadow_enabled = true
+shadow_bias = 0.04
+shadow_normal_bias = 1.4
+shadow_blur = 2.2
+directional_shadow_split_1 = 0.08
+directional_shadow_split_3 = 0.45
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 150.0
+
+[node name="PaddockEnclosure" parent="." instance=ExtResource("4_paddock")]
+
+[node name="WaterSurface" parent="." instance=ExtResource("2_water")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
+
+[node name="DinoMosasaurus" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.7071068, -0.40557995, 0.57922786, 0, 0.8191519, 0.5735767, -0.7071068, -0.40557995, 0.57922786, 88, 76, 88)
+current = true
+fov = 36.0
+
+[node name="UI" type="CanvasLayer" parent="."]
+visible = true
+
+[node name="Panel" type="PanelContainer" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -500.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 270.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "🌊 Hábitat Mosasaurus 100x100m (Laguna de 87x87m)"
+horizontal_alignment = 1
+
+[node name="CamLabel" type="Label" parent="UI/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+text = "Cámara Sandbox: Modo Vuelo Libre (WASD + Espacio/Shift)"
+
+[node name="BrainLabel" type="Label" parent="UI/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
+text = "Cerebro IA: 🟢 100% Autónomo | Mosasaurio (15m)"
+
+[node name="Controls" type="Label" parent="UI/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "• [W, A, S, D]: Mover cámara (Adelante, Izquierda, Atrás, Derecha)
+• [Espacio / Shift]: Elevar / Descender cámara
+• [Clic Derecho + Mover]: Rotar vista libremente en 360°
+• [Rueda Ratón]: Velocidad de vuelo de cámara
+• [Clic Izquierdo]: Lanzar presa / alimento a la laguna
+• [1 / 2 / 3]: Vistas rápidas (1: Panorámica | 2: Ventanal Acuario | 3: Pasarela)
+• [H]: Ocultar / Mostrar HUD | [R]: Reubicar Mosasaurio
+• [F1 / F2]: Cambiar de Hábitat (F1: Mosasaurio | F2: Triceratops)
+• [ESC]: Volver al Menú Principal"
+
