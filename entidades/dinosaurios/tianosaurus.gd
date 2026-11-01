@@ -1,6 +1,6 @@
 extends Node3D
 
-@onready var anim_player: AnimationPlayer = $Esqueleto_Titanosaurus/AnimationPlayer
+@onready var anim_player: AnimationPlayer = $AnimationPlayer
 
 func _ready():
 	if anim_player:
