@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/controladores/controlador_habitat_euoplocephalus.gd" id="1_ctrl"]
+[ext_resource type="PackedScene" path="res://assets/habitats/enclosure_clean_30x30.glb" id="2_enclosure"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_euoplocephalus.tscn" id="3_dino"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/estructuras/prop_estanque_rocas.tscn" id="4_pond"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/comida/prop_comida_comedero_hierba.tscn" id="5_feed"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_arbol_frondoso.tscn" id="6_tree"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_arbol_otono.tscn" id="7_tree_autumn"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_mediana.tscn" id="8_med_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_plana.tscn" id="9_flat_rock"]
+
+[node name="HabitatEuoplocephalus" type="Node3D"]
+script = ExtResource("1_ctrl")
+
+[node name="Enclosure" parent="." instance=ExtResource("2_enclosure")]
+
+[node name="DinoEuoplocephalus" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0, 0.12, 1.5)
+
+[node name="DinoEuoplocephalus2" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -3.5, 0.12, 4.0)
+
+[node name="DinoEuoplocephalus3" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 4.2, 0.12, -2.5)
+
+[node name="EstanqueRocas" parent="." instance=ExtResource("4_pond")]
+transform = Transform3D(0.55, 0, 0, 0, 0.65, 0, 0, 0, 0.55, -4.8, 0, -4.8)
+
+[node name="ComederoHierba" parent="." instance=ExtResource("5_feed")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 0, -5.0)
+
+[node name="ArbolFrondoso1" parent="." instance=ExtResource("6_tree")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 6.8, 0, 6.2)
+
+[node name="ArbolOtono1" parent="." instance=ExtResource("7_tree_autumn")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -6.6, 0, 6.0)
+
+[node name="RocaMediana1" parent="." instance=ExtResource("8_med_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0, 3.2)
+
+[node name="RocaPlana1" parent="." instance=ExtResource("9_flat_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, -6.2)

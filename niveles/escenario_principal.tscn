@@ -1,0 +1,122 @@
+[gd_scene format=3 uid="uid://jrm7i4574trg"]
+
+[ext_resource type="Script" uid="uid://ecdgveduqlxa" path="res://scripts/controladores/controlador_escenario_principal.gd" id="1_main_script"]
+[ext_resource type="PackedScene" uid="uid://c1q5l6waglwif" path="res://assets/ambiente/escenario_2km.glb" id="2_escenario_glb"]
+[ext_resource type="PackedScene" uid="uid://d0emvge5lgqvs" path="res://entidades/player_vr.tscn" id="3_player_vr"]
+[ext_resource type="PackedScene" uid="uid://vda5xoihae5h" path="res://niveles/habitat_titanosaurus.tscn" id="4_titan"]
+[ext_resource type="PackedScene" uid="uid://c7yak2mb1trex" path="res://niveles/habitat_trex.tscn" id="5_trex"]
+[ext_resource type="PackedScene" uid="uid://bqbo1scyfkggo" path="res://niveles/habitat_triceratops.tscn" id="6_tricer"]
+[ext_resource type="PackedScene" uid="uid://citk35db5pstm" path="res://niveles/habitat_mosasaurus.tscn" id="7_mosa"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_aquilops.tscn" id="8_aquilops"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_velociraptor.tscn" id="9_raptor"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_erlikosaurus.tscn" id="10_erlik"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_pachycephalosaurus.tscn" id="11_pachy"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_euoplocephalus.tscn" id="12_euoplo"]
+[ext_resource type="PackedScene" uid="uid://cq4hgnftsn07a" path="res://niveles/habitat_carnotaurus.tscn" id="13_carno"]
+[ext_resource type="PackedScene" uid="uid://c3qvk5w3lqexj" path="res://niveles/habitat_estegosaurio.tscn" id="14_estego"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_quetzalcoatlus.tscn" id="15_quetzal"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_liopleurodon.tscn" id="16_lio"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_elasmosaurus.tscn" id="17_elasmo"]
+[ext_resource type="PackedScene" path="res://niveles/habitat_espinosaurio.tscn" id="18_espino"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_uxk3l"]
+sky_top_color = Color(0.18, 0.54, 0.94, 1)
+sky_horizon_color = Color(0.7, 0.88, 0.98, 1)
+sky_curve = 0.14
+ground_bottom_color = Color(0.16, 0.3, 0.22, 1)
+ground_horizon_color = Color(0.58, 0.8, 0.9, 1)
+sun_angle_max = 18.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_d5ea2"]
+sky_material = SubResource("ProceduralSkyMaterial_uxk3l")
+
+[sub_resource type="Environment" id="Environment_lpplw"]
+background_mode = 2
+sky = SubResource("Sky_d5ea2")
+ambient_light_source = 2
+ambient_light_color = Color(0.42, 0.6, 0.74, 1)
+ambient_light_energy = 0.24
+tonemap_mode = 2
+tonemap_exposure = 0.88
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.64, 0.82, 0.88, 1)
+fog_density = 0.2
+fog_depth_begin = 210.0
+fog_depth_end = 1420.0
+
+[node name="EscenarioPrincipal" type="Node3D" unique_id=77149248]
+script = ExtResource("1_main_script")
+metadata/_managed_toon_style = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=820623596]
+environment = SubResource("Environment_lpplw")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=471032386]
+transform = Transform3D(0.76604444, -0.35920373, 0.53305537, 0, 0.8290376, 0.5591929, -0.64278764, -0.42836663, 0.6350797, 0, 0, 0)
+light_color = Color(1, 0.94, 0.82, 1)
+light_energy = 0.56
+light_indirect_energy = 0.68
+light_volumetric_fog_energy = 1.05
+shadow_enabled = true
+shadow_bias = 0.08
+shadow_normal_bias = 1.6
+shadow_blur = 1.4
+directional_shadow_split_1 = 0.14
+directional_shadow_split_2 = 0.36
+directional_shadow_split_3 = 0.68
+directional_shadow_blend_splits = true
+directional_shadow_fade_start = 0.84
+directional_shadow_max_distance = 360.0
+
+[node name="Escenario2km" parent="." unique_id=1289573708 instance=ExtResource("2_escenario_glb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8396721, 3.8146973e-06, 0.5090027)
+
+[node name="PlayerVR" parent="." unique_id=1340306759 instance=ExtResource("3_player_vr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 38.2, 12)
+
+[node name="HabitatAquilops" parent="." unique_id=2443116 instance=ExtResource("8_aquilops")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 38, -24)
+
+[node name="HabitatEuoplocephalus" parent="." unique_id=171239318 instance=ExtResource("12_euoplo")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -37, 38, -60)
+
+[node name="HabitatErlikosaurus" parent="." unique_id=736397565 instance=ExtResource("10_erlik")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -37, 38, 28)
+
+[node name="HabitatPachycephalosaurus" parent="." unique_id=2006287974 instance=ExtResource("11_pachy")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -78, 38, 28)
+
+[node name="HabitatTriceratops" parent="." unique_id=370700076 instance=ExtResource("6_tricer")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88, 38, -38)
+
+[node name="HabitatEstegosaurio" parent="." unique_id=725798233 instance=ExtResource("14_estego")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -150, 38, -38)
+
+[node name="HabitatTitanosaurus" parent="." unique_id=1302544413 instance=ExtResource("4_titan")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -116, 38, -126)
+
+[node name="HabitatVelociraptor" parent="." unique_id=374908634 instance=ExtResource("9_raptor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 38, -26)
+
+[node name="HabitatCarnotaurus" parent="." unique_id=1372302764 instance=ExtResource("13_carno")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 86, 38, -38)
+
+[node name="HabitatQuetzalcoatlus" parent="." unique_id=2109889767 instance=ExtResource("15_quetzal")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 38, -106)
+
+[node name="HabitatEspinosaurio" parent="." unique_id=1810607738 instance=ExtResource("18_espino")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 64, 38, 46)
+
+[node name="HabitatTRex" parent="." unique_id=1402544410 instance=ExtResource("5_trex")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154, 38, 38)
+
+[node name="HabitatLiopleurodon" parent="." unique_id=1355581940 instance=ExtResource("16_lio")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -132, 38, 146)
+
+[node name="HabitatMosasaurus" parent="." unique_id=814077612 instance=ExtResource("7_mosa")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -38, 38, 172)
+
+[node name="HabitatElasmosaurus" parent="." unique_id=955511964 instance=ExtResource("17_elasmo")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 66, 38, 164)

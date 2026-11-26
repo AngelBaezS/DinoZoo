@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://c7yak2mb1trex"]
+
+[ext_resource type="Script" uid="uid://cm1prtbyarnhr" path="res://scripts/controladores/controlador_habitat_trex.gd" id="1_trex_ctrl"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_t_rex.tscn" id="2_trex_dino"]
+[ext_resource type="PackedScene" uid="uid://3m0q7q8l6w87" path="res://assets/habitats/trex_enclosure_80x80.glb" id="3_enclosure_trex"]
+
+[node name="HabitatTRex" type="Node3D" unique_id=1402544410]
+script = ExtResource("1_trex_ctrl")
+
+[node name="Enclosure" parent="." unique_id=1728512655 instance=ExtResource("3_enclosure_trex")]
+
+[node name="DinoTRex" parent="." unique_id=317685085 instance=ExtResource("2_trex_dino")]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -6, 0.15, -2)
+
+[node name="DinoTRex2" parent="." unique_id=317685086 instance=ExtResource("2_trex_dino")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 2, 0.12, 2)

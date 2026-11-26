@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://cq4hgnftsn07a"]
+
+[ext_resource type="Script" uid="uid://dsx5ibco6u7a3" path="res://scripts/controladores/controlador_habitat_carnotaurus.gd" id="1_ctrl"]
+[ext_resource type="PackedScene" path="res://assets/habitats/enclosure_clean_50x50.glb" id="2_enclosure"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_carnotaurus.tscn" id="3_dino"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/comida/prop_comida_carcasa.tscn" id="4_carcass"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_palmera_alta.tscn" id="5_palm_tall"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_palmera_curva.tscn" id="6_palm_curved"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_grande.tscn" id="7_big_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_afilada.tscn" id="8_sharp_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_mediana.tscn" id="9_med_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/troncos/prop_tronco_caido_1.tscn" id="10_log"]
+
+[node name="HabitatCarnotaurus" type="Node3D" unique_id=723845362]
+script = ExtResource("1_ctrl")
+
+[node name="Enclosure" parent="." unique_id=1009743879 instance=ExtResource("2_enclosure")]
+
+[node name="DinoCarnotaurus" parent="." unique_id=441293503 instance=ExtResource("3_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.12, -3.0)
+
+[node name="DinoCarnotaurus2" parent="." unique_id=776905132 instance=ExtResource("3_dino")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.0, 0.12, 4.5)
+
+[node name="ComidaCarcasa" parent="." unique_id=597112443 instance=ExtResource("4_carcass")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+
+[node name="Palmera1" parent="." unique_id=2006325606 instance=ExtResource("5_palm_tall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.5, 0, -10.5)
+
+[node name="Palmera2" parent="." instance=ExtResource("5_palm_tall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5, 0, -11.0)
+
+[node name="PalmeraCurva1" parent="." unique_id=1610665589 instance=ExtResource("6_palm_curved")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.0, 0, 11.0)
+
+[node name="RocaGrande1" parent="." unique_id=1832049182 instance=ExtResource("7_big_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 0, 10.5)
+
+[node name="RocaAfilada1" parent="." instance=ExtResource("8_sharp_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.0, 0, 1.5)
+
+[node name="RocaMediana1" parent="." unique_id=1535884025 instance=ExtResource("9_med_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, -3.5)
+
+[node name="Tronco1" parent="." unique_id=457813735 instance=ExtResource("10_log")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 6.5, 0, 8.5)

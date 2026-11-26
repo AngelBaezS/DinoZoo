@@ -7,15 +7,32 @@ extends MeshInstance3D
 
 var _mat: ShaderMaterial
 
+func _resolve_water_manager() -> WaterManager:
+	if dino_body:
+		var p = dino_body.get_parent()
+		while p:
+			if p is Node3D and p.name.begins_with("Habitat"):
+				var sibling = p.get_node_or_null("WaterSurface") as WaterManager
+				if sibling:
+					return sibling
+				break
+			p = p.get_parent()
+	return get_tree().get_first_node_in_group("water_manager") as WaterManager
+
 func _ready() -> void:
+	visible = false
 	if not dino_body and get_parent() is CharacterBody3D:
 		dino_body = get_parent() as CharacterBody3D
 	if not water_manager:
-		water_manager = get_tree().get_first_node_in_group("water_manager") as WaterManager
+		water_manager = _resolve_water_manager()
 
-	_mat = material_override as ShaderMaterial
-	if not _mat:
-		_mat = get_active_material(0) as ShaderMaterial
+	var base_mat := material_override as ShaderMaterial
+	if not base_mat:
+		base_mat = get_active_material(0) as ShaderMaterial
+	if base_mat:
+		_mat = base_mat.duplicate() as ShaderMaterial
+		_mat.render_priority = 1
+		material_override = _mat
 	_update_shader_params()
 
 func _update_shader_params() -> void:
@@ -25,10 +42,16 @@ func _update_shader_params() -> void:
 
 func _process(_delta: float) -> void:
 	if not water_manager:
-		water_manager = get_tree().get_first_node_in_group("water_manager") as WaterManager
+		water_manager = _resolve_water_manager()
 		_update_shader_params()
 
 	if not water_manager or not dino_body or not _mat:
+		return
+
+	# Optimización FOV: si el cuerpo del dinosaurio no está en visión, pausar cálculos de espuma
+	if "is_in_view" in dino_body and not dino_body.is_in_view:
+		if visible:
+			visible = false
 		return
 
 	# Mantener plano horizontalmente sin cabeceo

@@ -89,6 +89,18 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "🌿 Hábitat Triceratops (Recinto 50x50m)  [F2]"
 
+[node name="BtnTitano" type="Button" parent="UI/CenterContainer/Card/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🦕 Hábitat Titanosaurus (Recinto 100x100m)  [F3]"
+
+[node name="BtnTRex" type="Button" parent="UI/CenterContainer/Card/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🦖 Hábitat Tyrannosaurus Rex (Recinto 100x100m)  [F4]"
+
 [node name="HSeparator2" type="HSeparator" parent="UI/CenterContainer/Card/VBox"]
 layout_mode = 2
 
@@ -98,10 +110,14 @@ theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 1)
 theme_override_font_sizes/font_size = 12
 text = "• Mosasaurio: Nado ondulante procedural, anillo de espuma, caza de alimento.
 • Triceratops: Adaptación anatómica a pendientes (4 sondas), evitación frontal.
-• Estanque de agua: Transparente, con oleaje, 100% atravesable.
-• En cualquier hábitat presiona [F1] o [F2] para alternar, o [ESC] para volver aquí."
+• Titanosaurus: Saurópodo colosal de 19m, cinemática de cuello y cola, recinto 100x100m.
+• Tyrannosaurus Rex: Superdepredador de 10m, cola contrapeso therópoda (9 segmentos), pisada calibrada (0.86 m/s), recinto 100x100m.
+• En cualquier hábitat presiona [F1], [F2], [F3] o [F4] para alternar, o [ESC] para volver aquí."
 autowrap_mode = 2
 
 [connection signal="pressed" from="UI/CenterContainer/Card/VBox/BtnMosa" to="." method="cargar_habitat_mosasaurus"]
 [connection signal="pressed" from="UI/CenterContainer/Card/VBox/BtnTri" to="." method="cargar_habitat_triceratops"]
+[connection signal="pressed" from="UI/CenterContainer/Card/VBox/BtnTitano" to="." method="cargar_habitat_titanosaurus"]
+[connection signal="pressed" from="UI/CenterContainer/Card/VBox/BtnTRex" to="." method="cargar_habitat_trex"]
+
 

@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/controladores/controlador_habitat_pachycephalosaurus.gd" id="1_ctrl"]
+[ext_resource type="PackedScene" path="res://assets/habitats/enclosure_clean_30x30.glb" id="2_enclosure"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_pachycephalosaurus.tscn" id="3_dino"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/comida/prop_comida_comedero_hierba.tscn" id="4_feed"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_pino_mediano.tscn" id="5_pine_med"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_pino_pequeno.tscn" id="6_pine_small"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_grande.tscn" id="7_big_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_plana.tscn" id="8_flat_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_afilada.tscn" id="9_sharp_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/troncos/prop_tronco_caido_1.tscn" id="10_log"]
+
+[node name="HabitatPachycephalosaurus" type="Node3D"]
+script = ExtResource("1_ctrl")
+
+[node name="Enclosure" parent="." instance=ExtResource("2_enclosure")]
+
+[node name="DinoPachycephalosaurus" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.12, 0)
+
+[node name="DinoPachycephalosaurus2" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 2.8, 0.12, -2.0)
+
+[node name="DinoPachycephalosaurus3" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, -2.0, 0.12, 3.8)
+
+[node name="ComederoHierba" parent="." instance=ExtResource("4_feed")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0, -4.8)
+
+[node name="PinoMediano1" parent="." instance=ExtResource("5_pine_med")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.8, 0, -6.5)
+
+[node name="PinoPequeno1" parent="." instance=ExtResource("6_pine_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, 0, 6.0)
+
+[node name="RocaGrande1" parent="." instance=ExtResource("7_big_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0, 0, 5.5)
+
+[node name="RocaPlana1" parent="." instance=ExtResource("8_flat_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, 4.8)
+
+[node name="RocaAfilada1" parent="." instance=ExtResource("9_sharp_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 0, -3.2)
+
+[node name="TroncoCaido1" parent="." instance=ExtResource("10_log")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 5.0, 0, 1.0)

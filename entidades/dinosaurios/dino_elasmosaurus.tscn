@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dinosaurios/dino_elasmosaurus.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/modelos/Elasmosaurus.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dino"]
+radius = 1.2
+height = 7.5
+
+[node name="Elasmosaurus" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_dino")
+
+[node name="VisualModel" type="Node3D" parent="."]
+transform = Transform3D(-5.1, 0, 0, 0, 5.1, 0, 0, 0, -5.1, 0, 0, 0)
+
+[node name="Model" parent="VisualModel" instance=ExtResource("2_model")]

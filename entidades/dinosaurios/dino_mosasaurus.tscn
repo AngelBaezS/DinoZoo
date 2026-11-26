@@ -6,8 +6,8 @@
 [ext_resource type="Script" path="res://scripts/agua/foam_ring_controller.gd" id="4_foam_ctrl"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dino"]
-radius = 2.4
-height = 14.0
+radius = 1.5
+height = 9.5
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_foam"]
 noise_type = 2
@@ -34,7 +34,7 @@ shader_parameter/foam_intensity = 1.0
 shader_parameter/noise_tex = SubResource("NoiseTexture2D_foam")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_foam"]
-size = Vector2(16, 26)
+size = Vector2(12, 22)
 subdivide_width = 32
 subdivide_depth = 48
 
@@ -46,15 +46,14 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 
 shape = SubResource("CapsuleShape3D_dino")
 
 [node name="VisualModel" type="Node3D" parent="."]
-transform = Transform3D(-7.5, 0, -6.55671e-07, 0, 7.5, 0, 6.55671e-07, 0, -7.5, 0, 0, 0)
+transform = Transform3D(-6.5, 0, -5.68241e-07, 0, 6.5, 0, 5.68241e-07, 0, -6.5, 0, 0, 0)
 
 [node name="Mosasaurus" parent="VisualModel" instance=ExtResource("2_mosa_model")]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
 
 [node name="FoamRing" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.105, 0)
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 material_override = SubResource("ShaderMaterial_foam")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_foam")
 script = ExtResource("4_foam_ctrl")
-

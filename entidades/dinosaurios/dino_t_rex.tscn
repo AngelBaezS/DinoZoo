@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://c8y8x8q6sav12"]
+
+[ext_resource type="Script" path="res://scripts/dinosaurios/dino_t_rex.gd" id="1_trex_script"]
+[ext_resource type="PackedScene" uid="uid://drspdthyq3fil" path="res://assets/modelos/T-rex.glb" id="2_trex_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_torso"]
+radius = 1.4
+height = 6.2
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_legs"]
+height = 3.2
+radius = 1.2
+
+[node name="DinoTRex" type="CharacterBody3D" unique_id=1839201948]
+collision_layer = 2
+collision_mask = 3
+floor_constant_speed = true
+floor_max_angle = 0.872665
+floor_snap_length = 0.8
+script = ExtResource("1_trex_script")
+
+[node name="CollisionTorso" type="CollisionShape3D" parent="." unique_id=987654321]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 2.8, -0.5)
+shape = SubResource("CapsuleShape3D_torso")
+
+[node name="CollisionLegs" type="CollisionShape3D" parent="." unique_id=987654322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+shape = SubResource("CylinderShape3D_legs")
+
+[node name="VisualModel" type="Node3D" parent="." unique_id=1380354840]
+transform = Transform3D(-6.1, 0, -5.3327e-07, 0, 6.1, 0, 5.3327e-07, 0, -6.1, 0, 0, 0)
+
+[node name="TRexModel" parent="VisualModel" unique_id=1478996395 instance=ExtResource("2_trex_model")]

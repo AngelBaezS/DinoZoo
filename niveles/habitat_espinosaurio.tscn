@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/controladores/controlador_habitat_espinosaurio.gd" id="1_ctrl"]
+[ext_resource type="PackedScene" uid="uid://cc7jlm6aie6f5" path="res://assets/habitats/enclosure_clean_80x80.glb" id="2_enclosure"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_espinosaurio.tscn" id="3_dino"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/estructuras/prop_estanque_rocas.tscn" id="4_pond"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/comida/prop_comida_carcasa.tscn" id="5_carcass"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_palmera_curva.tscn" id="6_palm_curved"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_palmera_alta.tscn" id="7_palm_tall"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_palmera_pequena.tscn" id="8_palm_small"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/troncos/prop_tronco_caido_2.tscn" id="9_log2"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/troncos/prop_tronco_caido_3.tscn" id="10_log3"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_grande.tscn" id="11_big_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_plana.tscn" id="12_flat_rock"]
+
+[node name="HabitatEspinosaurio" type="Node3D"]
+script = ExtResource("1_ctrl")
+
+[node name="Enclosure" parent="." instance=ExtResource("2_enclosure")]
+
+[node name="DinoEspinosaurio" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+
+[node name="DinoEspinosaurio2" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 11.0, 0.12, 8.0)
+
+[node name="EstanqueRocas" parent="." instance=ExtResource("4_pond")]
+transform = Transform3D(0.85, 0, 0, 0, 0.85, 0, 0, 0, 0.85, -9.5, 0, -8.0)
+
+[node name="ComidaCarcasa" parent="." instance=ExtResource("5_carcass")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0.08, -5.0)
+
+[node name="PalmeraCurva1" parent="." instance=ExtResource("6_palm_curved")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.0, 0, -14.5)
+
+[node name="PalmeraAlta1" parent="." instance=ExtResource("7_palm_tall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 0, -14.5)
+
+[node name="PalmeraPequena1" parent="." instance=ExtResource("8_palm_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.0, 0, 11.0)
+
+[node name="TroncoCaido2" parent="." instance=ExtResource("9_log2")]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, 11.0, 0, -13.0)
+
+[node name="TroncoCaido3" parent="." instance=ExtResource("10_log3")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -6.5, 0, 13.0)
+
+[node name="RocaGrande1" parent="." instance=ExtResource("11_big_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 0, 14.5)
+
+[node name="RocaPlana1" parent="." instance=ExtResource("12_flat_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -14.5)

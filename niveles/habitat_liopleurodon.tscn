@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/controladores/controlador_habitat_liopleurodon.gd" id="1_ctrl"]
+[ext_resource type="PackedScene" uid="uid://kfif2idtgv3w" path="res://assets/habitats/dinosaur_paddock_50x50.glb" id="2_enclosure"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_liopleurodon.tscn" id="3_dino"]
+[ext_resource type="PackedScene" path="res://entidades/efectos/water_surface.tscn" id="4_water"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_grande.tscn" id="5_rock"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_plana.tscn" id="6_flat_rock"]
+
+[node name="HabitatLiopleurodon" type="Node3D"]
+script = ExtResource("1_ctrl")
+
+[node name="Enclosure" parent="." instance=ExtResource("2_enclosure")]
+
+[node name="WaterSurface" parent="." instance=ExtResource("4_water")]
+transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 8.8, 0)
+
+[node name="DinoLiopleurodon" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 5.0, 2)
+
+[node name="DinoLiopleurodon2" parent="." instance=ExtResource("3_dino")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 8.5, 5.8, -5)
+
+[node name="RocaGrande1" parent="." instance=ExtResource("5_rock")]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 10, 1.1, 10)
+
+[node name="RocaPlana1" parent="." instance=ExtResource("6_flat_rock")]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, -3, 1.1, 10)

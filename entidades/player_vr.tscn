@@ -1,0 +1,257 @@
+[gd_scene format=3 uid="uid://d0emvge5lgqvs"]
+
+[ext_resource type="Script" path="res://scripts/controladores/player_vr_desktop.gd" id="1_player_script"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08, 0.1, 0.14, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.7, 0.9, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hotbar"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.07, 0.09, 0.13, 0.84)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.75, 0.95, 0.45)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_active_meat"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.45, 0.13, 0.12, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.48, 0.36, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_inactive"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12, 0.15, 0.2, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.48, 0.58, 0.45)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PlayerVR" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="XROrigin3D" type="XROrigin3D" parent="."]
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+current = true
+fov = 75.0
+far = 1800.0
+
+[node name="LeftHand" type="XRController3D" parent="XROrigin3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 1.2, -0.4)
+tracker = &"left_hand"
+
+[node name="RightHand" type="XRController3D" parent="XROrigin3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 1.2, -0.4)
+tracker = &"right_hand"
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 405.0
+offset_bottom = 325.0
+
+[node name="Panel" type="PanelContainer" parent="HUD/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+
+[node name="VBox" type="VBoxContainer" parent="HUD/MarginContainer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "🎮 CONTROLES & ALIMENTACIÓN"
+
+[node name="Status" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 12
+text = "Modo: 🚶 TERRESTRE (Caminando)"
+
+[node name="PerfLabel" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = "⚡ FPS: -- | Animando en FOV: --/--"
+
+[node name="HSeparator" type="HSeparator" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+
+[node name="Ctrl1" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "• Clic Izquierdo: Capturar mouse / Mirar"
+
+[node name="Ctrl2" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "• W, A, S, D: Moverse"
+
+[node name="CtrlFood" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.42, 1)
+theme_override_font_sizes/font_size = 12
+text = "• 1: Carne | 2: Pasto | F: Lanzar comida"
+
+[node name="Ctrl3" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "• Doble Espacio o G: Volar (Creativo)"
+
+[node name="Ctrl4" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "• Espacio / E: Subir | Ctrl / C / Q: Bajar"
+
+[node name="Ctrl5" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "• Shift: Correr / Turbo de Vuelo"
+
+[node name="Ctrl6" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+text = "• V: Modo Fantasma (Noclip atravesar vallas)"
+
+[node name="Ctrl7" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "• Rueda Mouse: Vel. vuelo (14 m/s) | H: HUD"
+
+[node name="Ctrl8" type="Label" parent="HUD/MarginContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 11
+text = "• ESC: Liberar cursor"
+
+[node name="Crosshair" type="ColorRect" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -3.0
+offset_top = -3.0
+offset_right = 3.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="FoodHotbarAnchor" type="CenterContainer" parent="HUD"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -112.0
+offset_right = 260.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="HotbarPanel" type="PanelContainer" parent="HUD/FoodHotbarAnchor"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hotbar")
+
+[node name="HotbarVBox" type="VBoxContainer" parent="HUD/FoodHotbarAnchor/HotbarPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SlotsHBox" type="HBoxContainer" parent="HUD/FoodHotbarAnchor/HotbarPanel/HotbarVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="SlotMeat" type="PanelContainer" parent="HUD/FoodHotbarAnchor/HotbarPanel/HotbarVBox/SlotsHBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_active_meat")
+
+[node name="Label" type="Label" parent="HUD/FoodHotbarAnchor/HotbarPanel/HotbarVBox/SlotsHBox/SlotMeat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "[1] 🥩 Carne (Carnívoros)"
+
+[node name="SlotGrass" type="PanelContainer" parent="HUD/FoodHotbarAnchor/HotbarPanel/HotbarVBox/SlotsHBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_inactive")
+
+[node name="Label" type="Label" parent="HUD/FoodHotbarAnchor/HotbarPanel/HotbarVBox/SlotsHBox/SlotGrass"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.96, 0.86, 1)
+theme_override_font_sizes/font_size = 14
+text = "[2] 🌿 Pasto (Herbívoros)"
+
+[node name="ThrowHint" type="Label" parent="HUD/FoodHotbarAnchor/HotbarPanel/HotbarVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "Pulsa [F] para lanzar Carne"
+horizontal_alignment = 1

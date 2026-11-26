@@ -41,8 +41,8 @@ var run_speed: float:
 @export var slope_smooth_speed: float = 6.5          # Velocidad de transición elástica al subir/bajar
 @export var max_slope_pitch_deg: float = 38.0        # Límite máximo de cabeceo del cuerpo en pendientes
 @export var max_slope_roll_deg: float = 24.0         # Límite máximo de balanceo lateral en pendientes
-@export var probe_forward_dist: float = 1.8          # Distancia hacia adelante/atrás de las sondas de suelo
-@export var probe_side_dist: float = 0.9             # Distancia lateral de las sondas de suelo
+@export var probe_forward_dist: float = 2.4          # Distancia hacia adelante/atrás de las sondas de suelo
+@export var probe_side_dist: float = 1.2             # Distancia lateral de las sondas de suelo
 @export var slope_spine_flex_ratio: float = 0.20     # Flexión de columna al subir/bajar
 @export var slope_head_compensate_ratio: float = 0.45# Compensación de cabeza para mantener mirada al frente
 @export var slope_neck_compensate_ratio: float = 0.35# Compensación de cuello
@@ -51,7 +51,7 @@ var run_speed: float:
 # Parámetros del Cerebro Sensorial Autónomo (Opción A: Herbívoro Territorial)
 @export var smell_radius: float = 26.0       # Radio 360° de olfato
 @export var vision_angle_deg: float = 130.0  # Cono de visión frontal
-@export var eat_distance: float = 3.2        # Distancia para comer (permite alcanzar comida en vallas)
+@export var eat_distance: float = 3.6        # Distancia para comer (permite alcanzar comida en vallas)
 
 # Límites del recinto terrestre para patrullaje (Enclosure 50x50 con valla interna de 35x35m)
 @export var paddock_bounds_min: Vector2 = Vector2(-15.5, -15.5)
@@ -69,11 +69,25 @@ enum State {
 
 @onready var visual_model: Node3D = get_node_or_null("VisualModel")
 
+## Optimización de Rendimiento y Culling de Animaciones en FOV
+@export_group("Optimización FOV / Culling")
+@export var fov_culling_enabled: bool = true
+@export var max_animation_distance: float = 160.0
+
+var is_in_view: bool = true
+var _visibility_notifier: VisibleOnScreenNotifier3D
+var _visibility_check_timer: float = 0.0
+const VISIBILITY_CHECK_INTERVAL: float = 0.12
+const CULL_LENGTH_HALF: float = 5.0
+const CULL_HEIGHT: float = 4.2
+const CULL_WIDTH_HALF: float = 2.0
+
 var current_state: State = State.PATROL_WANDER:
 	set(value):
 		if current_state != value:
 			current_state = value
-			print("[Cerebro Triceratops] Estado: ", get_brain_state_name())
+			if not has_meta("_managed_by_park_optimizer"):
+				print("[Cerebro Triceratops] Estado: ", get_brain_state_name())
 
 var current_food_target: Node3D = null
 
@@ -106,6 +120,8 @@ var _bone_neck: int = -1
 var _bone_chest: int = -1
 var _bone_spine: int = -1
 var _bone_jaw: int = -1
+var _jaw_ctrl: DinoJawController = DinoJawController.new()
+var _spectator_ctrl: DinoSpectatorController = DinoSpectatorController.new()
 var _bone_tail_1: int = -1
 var _bone_tail_2: int = -1
 var _bone_tail_3: int = -1
@@ -120,10 +136,14 @@ var _tail_3_rest_q: Quaternion = Quaternion.IDENTITY
 
 func _ready() -> void:
 	add_to_group("dino_herd")
+	add_to_group("triceratops")
+	add_to_group("dinosaurios")
 	_time_accum = randf_range(0.0, 10.0)
 	_apply_dino_material()
 	_find_animation_player()
 	_find_skeleton()
+	_spectator_ctrl.setup("triceratops", self)
+	_setup_visibility_culling()
 	_pick_new_patrol_waypoint()
 	
 	# Desfasar ligeramente el estado inicial para que la manada actúe de forma orgánica
@@ -189,12 +209,16 @@ func _find_skeleton() -> void:
 			_tail_2_rest_q = _skeleton.get_bone_rest(_bone_tail_2).basis.get_rotation_quaternion()
 		if _bone_tail_3 >= 0:
 			_tail_3_rest_q = _skeleton.get_bone_rest(_bone_tail_3).basis.get_rotation_quaternion()
+		_jaw_ctrl.setup(_skeleton, "triceratops", _anim_player)
 
 func _play_anim(anim_name: String, blend: float = 0.3, custom_speed: float = -1.0) -> void:
 	if not _anim_player:
 		_find_animation_player()
 		if not _anim_player:
 			return
+
+	if not is_in_view:
+		return
 
 	var target_anim = ""
 	if _anim_player.has_animation(anim_name):
@@ -219,14 +243,21 @@ func _play_anim(anim_name: String, blend: float = 0.3, custom_speed: float = -1.
 			_anim_player.play(target_anim, blend)
 
 func _physics_process(delta: float) -> void:
+	# Comprobación periódica de campo de visión para optimizar CPU
+	if fov_culling_enabled:
+		_visibility_check_timer -= delta
+		if _visibility_check_timer <= 0.0:
+			_visibility_check_timer = VISIBILITY_CHECK_INTERVAL
+			_update_visibility_state()
+
 	# 1. Gravedad terrestre y adaptación al terreno
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = -1.0 # Fuerza ligera hacia abajo para mantener contacto con el terreno 3D
 
-	# 1.1 Sondas de superficie y adaptación de pendiente
-	if slope_adaptation_enabled:
+	# 1.1 Sondas de superficie y adaptación de pendiente (solo cuando es visible)
+	if slope_adaptation_enabled and is_in_view:
 		_update_surface_slope(delta)
 
 	# 2. Temporizadores del Cerebro y Evasión
@@ -271,9 +302,9 @@ func _physics_process(delta: float) -> void:
 	if (current_state == State.PATROL_WANDER or current_state == State.PURSUE_FOOD) and _terrain_collision_cooldown <= 0.0:
 		var space_state = get_world_3d().direct_space_state
 		if space_state:
-			var chest_y = global_position.y + 1.2
+			var chest_y = global_position.y + 1.4
 			var ray_from = Vector3(global_position.x, chest_y, global_position.z)
-			var ray_to = ray_from + fwd_h * 2.5
+			var ray_to = ray_from + fwd_h * 4.6
 			var q_pred = PhysicsRayQueryParameters3D.create(ray_from, ray_to, 1) # Capa 1: Terreno y objetos
 			q_pred.exclude = [get_rid()]
 			var res_pred = space_state.intersect_ray(q_pred)
@@ -312,11 +343,17 @@ func _physics_process(delta: float) -> void:
 
 	# 7.3 Detección anti-bloqueo (si intenta avanzar pero la velocidad horizontal real es nula)
 	var real_h_speed = Vector2(velocity.x, velocity.z).length()
-	if desired_forward > 0.3 and real_h_speed < 0.12 and is_on_floor():
+	if desired_forward > 0.2 and real_h_speed < 0.15 and is_on_floor():
 		_stuck_timer += delta
-		if _stuck_timer > 0.5 and _terrain_collision_cooldown <= 0.0:
+		if _stuck_timer > 0.45:
 			_stuck_timer = 0.0
-			_trigger_terrain_obstacle_turn(-fwd_h, global_position + fwd_h * 1.5)
+			_terrain_collision_cooldown = 0.0
+			var center = _get_habitat_center()
+			center.y = global_position.y
+			var to_center = (center - global_position).normalized()
+			if to_center.length_squared() < 0.01:
+				to_center = -fwd_h
+			_trigger_terrain_obstacle_turn(-to_center, global_position + fwd_h * 1.5, true)
 	else:
 		_stuck_timer = max(0.0, _stuck_timer - delta * 2.0)
 
@@ -324,17 +361,7 @@ func _physics_process(delta: float) -> void:
 	_handle_autonomous_animation_clips()
 
 func _sensory_scan_food() -> void:
-	var food_items = get_tree().get_nodes_in_group("dino_food")
-	var closest_food: Node3D = null
-	var closest_dist: float = smell_radius
-
-	for item in food_items:
-		if is_instance_valid(item) and item is Node3D:
-			var d = global_position.distance_to(item.global_position)
-			if d < closest_dist:
-				closest_dist = d
-				closest_food = item
-
+	var closest_food := DinoFood.find_nearest_for(self, DinoFood.DIET_GRASS, smell_radius, _get_habitat_node(), paddock_bounds_min, paddock_bounds_max)
 	current_food_target = closest_food
 
 	if is_instance_valid(current_food_target):
@@ -355,10 +382,46 @@ func _sensory_scan_food() -> void:
 			current_state = State.IDLE_OBSERVE
 			_state_timer = randf_range(3.0, 5.0)
 
-func _update_brain_state(_delta: float) -> Dictionary:
+func _update_brain_state(delta: float) -> Dictionary:
 	var turn: float = 0.0
 	var forward: float = 0.0
 	var speed: float = walk_speed
+
+	var busy_with_food := is_instance_valid(current_food_target) or (current_state in [State.ALERT_SMELL, State.PURSUE_FOOD, State.EAT_BITE])
+	_spectator_ctrl.update(
+		delta,
+		self,
+		_get_habitat_node(),
+		Vector3(paddock_bounds_min.x, 0.0, paddock_bounds_min.y),
+		Vector3(paddock_bounds_max.x, 0.0, paddock_bounds_max.y),
+		busy_with_food
+	)
+
+	if _spectator_ctrl.is_controlling() and current_state != State.TERRITORIAL_DISPLAY:
+		if _spectator_ctrl.is_moving_phase():
+			current_state = State.PATROL_WANDER
+			_current_waypoint = _spectator_ctrl.get_move_target(self)
+			var steer_target := _obstacle_detour_waypoint if _detour_timer > 0.0 else _current_waypoint
+			turn = _steer_towards(steer_target)
+			forward = 1.0
+			speed = walk_speed * _spectator_ctrl.get_speed_multiplier()
+			var spec_herd = _compute_herd_avoidance()
+			if abs(spec_herd) > 0.05:
+				turn += spec_herd
+			var spec_fence = _compute_fence_avoidance()
+			if abs(spec_fence) > 0.05:
+				turn = spec_fence
+			return {"turn": clamp(turn, -1.0, 1.0), "forward": clamp(forward, -1.0, 1.0), "speed": speed}
+		elif _spectator_ctrl.is_posing_phase():
+			if _spectator_ctrl.consume_display_trigger():
+				current_state = State.TERRITORIAL_DISPLAY
+				_state_timer = _spectator_ctrl.get_display_duration()
+			else:
+				current_state = State.IDLE_OBSERVE
+				_state_timer = maxf(_state_timer, 0.5)
+			_observe_look_angle = _spectator_ctrl.get_head_look_factor(self)
+			turn = _spectator_ctrl.get_showcase_turn(self)
+			return {"turn": clamp(turn, -1.0, 1.0), "forward": 0.0, "speed": walk_speed}
 
 	match current_state:
 		State.PATROL_WANDER:
@@ -508,14 +571,62 @@ func _trigger_90_degree_turn(other: Node3D) -> void:
 		new_fwd = (-global_transform.basis.z).rotated(Vector3.UP, angle_offset).normalized()
 		new_target = global_position + new_fwd * dist_forward
 
-	new_target.x = clamp(new_target.x, paddock_bounds_min.x + 3.0, paddock_bounds_max.x - 3.0)
-	new_target.z = clamp(new_target.z, paddock_bounds_min.y + 3.0, paddock_bounds_max.y - 3.0)
-	new_target.y = 0.0
+	new_target = _clamp_to_habitat(new_target, 3.0)
+	new_target.y = global_position.y
 
 	_current_waypoint = new_target
 
-func _trigger_terrain_obstacle_turn(col_normal: Vector3, _col_point: Vector3) -> void:
-	if _terrain_collision_cooldown > 0.0:
+func _get_habitat_node() -> Node3D:
+	var p = get_parent()
+	while p:
+		if p is Node3D and (p.name.begins_with("Habitat") or p == get_tree().current_scene or p.get_parent() == get_tree().root):
+			return p as Node3D
+		p = p.get_parent()
+	if get_parent() is Node3D:
+		return get_parent() as Node3D
+	return null
+
+func _to_habitat_local(world_pos: Vector3) -> Vector3:
+	var hab = _get_habitat_node()
+	return hab.to_local(world_pos) if hab else world_pos
+
+func _to_habitat_global(local_pos: Vector3) -> Vector3:
+	var hab = _get_habitat_node()
+	return hab.to_global(local_pos) if hab else local_pos
+
+func _get_habitat_center() -> Vector3:
+	var hab = _get_habitat_node()
+	if hab:
+		return hab.global_position
+	return Vector3.ZERO
+
+func _clamp_to_habitat(world_pos: Vector3, margin: float = 3.0) -> Vector3:
+	var hab = _get_habitat_node()
+	if hab:
+		var loc = hab.to_local(world_pos)
+		loc.x = clamp(loc.x, paddock_bounds_min.x + margin, paddock_bounds_max.x - margin)
+		loc.z = clamp(loc.z, paddock_bounds_min.y + margin, paddock_bounds_max.y - margin)
+		return hab.to_global(loc)
+	else:
+		var clamped = world_pos
+		clamped.x = clamp(clamped.x, paddock_bounds_min.x + margin, paddock_bounds_max.x - margin)
+		clamped.z = clamp(clamped.z, paddock_bounds_min.y + margin, paddock_bounds_max.y - margin)
+		return clamped
+
+func _pick_random_habitat_waypoint(margin: float = 3.5) -> Vector3:
+	var hab = _get_habitat_node()
+	var lx = randf_range(paddock_bounds_min.x + margin, paddock_bounds_max.x - margin)
+	var lz = randf_range(paddock_bounds_min.y + margin, paddock_bounds_max.y - margin)
+	var local_wp = Vector3(lx, 0.0, lz)
+	if hab:
+		var gw = hab.to_global(local_wp)
+		gw.y = global_position.y
+		return gw
+	local_wp.y = global_position.y
+	return local_wp
+
+func _trigger_terrain_obstacle_turn(col_normal: Vector3, _col_point: Vector3, is_stuck: bool = false) -> void:
+	if _terrain_collision_cooldown > 0.0 and not is_stuck:
 		return
 
 	_terrain_collision_cooldown = 1.6
@@ -575,52 +686,75 @@ func _trigger_terrain_obstacle_turn(col_normal: Vector3, _col_point: Vector3) ->
 			if n.y < 0.65:
 				right_blocked = true
 
-	# Decidir hacia qué lado girar para continuar avanzando
+	# Vector hacia el centro del hábitat
+	var center = _get_habitat_center()
+	center.y = global_position.y
+	var to_center = (center - global_position)
+	to_center.y = 0.0
+	var to_center_dir = to_center.normalized() if to_center.length_squared() > 0.01 else -fwd
+
 	var turn_left: bool = false
-	if left_blocked and not right_blocked:
+	var turn_deg: float = randf_range(75.0, 110.0)
+	var new_fwd = fwd
+
+	# Si ambos están bloqueados o está atascado (caso típico de esquina a 90°):
+	if (left_blocked and right_blocked) or is_stuck:
+		var deflection = deg_to_rad(randf_range(-20.0, 20.0))
+		new_fwd = to_center_dir.rotated(Vector3.UP, deflection).normalized()
+		turn_left = (fwd.cross(Vector3.UP).dot(new_fwd) < 0.0)
+		turn_deg = rad_to_deg(fwd.angle_to(new_fwd))
+	elif left_blocked and not right_blocked:
 		turn_left = false
+		turn_deg = randf_range(75.0, 110.0)
+		var angle_rad = deg_to_rad(-turn_deg)
+		new_fwd = fwd.rotated(Vector3.UP, angle_rad).normalized()
 	elif right_blocked and not left_blocked:
 		turn_left = true
+		turn_deg = randf_range(75.0, 110.0)
+		var angle_rad = deg_to_rad(turn_deg)
+		new_fwd = fwd.rotated(Vector3.UP, angle_rad).normalized()
 	else:
-		# Si ambos están despejados (o ambos bloqueados), girar hacia el centro del recinto
-		var to_center = Vector3.ZERO - global_position
-		to_center.y = 0.0
-		var dot_l = dir_left.dot(to_center.normalized())
-		var dot_r = dir_right.dot(to_center.normalized())
+		var dot_l = dir_left.dot(to_center_dir)
+		var dot_r = dir_right.dot(to_center_dir)
 		if dot_l > dot_r + 0.1:
 			turn_left = true
 		elif dot_r > dot_l + 0.1:
 			turn_left = false
 		else:
-			# Si son similares, alinear con la tangente del obstáculo que continúe el avance
 			turn_left = (fwd.dot(tangent_left) > fwd.dot(tangent_right))
+		turn_deg = randf_range(75.0, 110.0)
+		var angle_rad = deg_to_rad(turn_deg) if turn_left else deg_to_rad(-turn_deg)
+		new_fwd = fwd.rotated(Vector3.UP, angle_rad).normalized()
 
-	# Ángulo de giro amplio (entre 75° y 110°) para esquivar el objeto frontal y seguir avanzando
-	var turn_deg = randf_range(75.0, 110.0)
-	var angle_rad = deg_to_rad(turn_deg) if turn_left else deg_to_rad(-turn_deg)
-	var new_fwd = fwd.rotated(Vector3.UP, angle_rad).normalized()
+	# Asegurar que el nuevo rumbo siempre apunte hacia el interior del hábitat
+	if new_fwd.dot(to_center_dir) < 0.25 or (left_blocked and right_blocked) or is_stuck:
+		new_fwd = to_center_dir.rotated(Vector3.UP, deg_to_rad(randf_range(-30.0, 30.0))).normalized()
+		turn_deg = rad_to_deg(fwd.angle_to(new_fwd))
+		turn_left = (fwd.cross(Vector3.UP).dot(new_fwd) < 0.0)
 
-	# Proyectar el nuevo camino a 7 - 11 metros en esa dirección
-	var dist_forward = randf_range(7.0, 11.0)
+	var dist_forward = randf_range(7.0, 12.0)
 	var new_target = global_position + new_fwd * dist_forward
-
-	# Si el nuevo rumbo choca con la valla exterior, invertir al lado opuesto
-	if new_target.x > paddock_bounds_max.x - 3.0 or new_target.x < paddock_bounds_min.x + 3.0 \
-	or new_target.z > paddock_bounds_max.y - 3.0 or new_target.z < paddock_bounds_min.y + 3.0:
-		new_fwd = fwd.rotated(Vector3.UP, -angle_rad).normalized()
-		new_target = global_position + new_fwd * dist_forward
-
-	new_target.x = clamp(new_target.x, paddock_bounds_min.x + 3.0, paddock_bounds_max.x - 3.0)
-	new_target.z = clamp(new_target.z, paddock_bounds_min.y + 3.0, paddock_bounds_max.y - 3.0)
+	new_target = _clamp_to_habitat(new_target, 3.0)
 	new_target.y = global_position.y
 
 	_current_waypoint = new_target
 	_obstacle_detour_waypoint = new_target
-	_detour_timer = 2.4
-
-	# Impulso inicial elástico de viraje para iniciar la rotación de inmediato
+	_detour_timer = 2.8
 	_turn_factor = 1.0 if turn_left else -1.0
-	print("[Cerebro Triceratops] Choque frontal con obstáculo evadido -> Girando ", "IZQUIERDA" if turn_left else "DERECHA", " (", round(turn_deg), "°) buscando seguir avanzando.")
+
+	# Giro reactivo inicial inmediato para despegar los cuernos y cabeza de la pared
+	var target_rot = atan2(-new_fwd.x, -new_fwd.z)
+	var lerp_weight = 0.85 if is_stuck else 0.65
+	global_rotation.y = lerp_angle(global_rotation.y, target_rot, lerp_weight)
+
+	# Redirigir velocidad
+	var cur_speed = Vector2(velocity.x, velocity.z).length()
+	var exit_speed = max(cur_speed * 0.5, walk_speed * 0.5)
+	velocity.x = new_fwd.x * exit_speed
+	velocity.z = new_fwd.z * exit_speed
+
+	if not has_meta("_managed_by_park_optimizer"):
+		print("[Cerebro Triceratops] Choque frontal con obstáculo evadido -> Girando ", "IZQUIERDA" if turn_left else "DERECHA", " (", round(turn_deg), "°) buscando seguir avanzando.")
 
 func _steer_towards(target_pos: Vector3) -> float:
 	var to_target = (target_pos - global_position)
@@ -629,34 +763,36 @@ func _steer_towards(target_pos: Vector3) -> float:
 	return clamp(-local_dir.x * 2.2, -1.0, 1.0)
 
 func _compute_fence_avoidance() -> float:
-	# Si está cazando comida o comiendo, NO evadir: la comida es la prioridad absoluta
 	if current_state == State.PURSUE_FOOD or current_state == State.EAT_BITE:
 		return 0.0
 
 	var fwd = -global_transform.basis.z
+	var hab = _get_habitat_node()
+	if hab:
+		fwd = hab.global_transform.basis.inverse() * fwd
+	var local_pos = _to_habitat_local(global_position)
 	var needs_avoid = false
 
-	# Solo corregir rumbo si se aproxima a los límites Y su vector de marcha apunta hacia la valla
-	if global_position.x > (paddock_bounds_max.x - 3.5) and fwd.x > 0.0:
+	if local_pos.x > (paddock_bounds_max.x - 3.5) and fwd.x > 0.0:
 		needs_avoid = true
-	elif global_position.x < (paddock_bounds_min.x + 3.5) and fwd.x < 0.0:
+	elif local_pos.x < (paddock_bounds_min.x + 3.5) and fwd.x < 0.0:
 		needs_avoid = true
 
-	if global_position.z > (paddock_bounds_max.y - 3.5) and fwd.z > 0.0:
+	if local_pos.z > (paddock_bounds_max.y - 3.5) and fwd.z > 0.0:
 		needs_avoid = true
-	elif global_position.z < (paddock_bounds_min.y + 3.5) and fwd.z < 0.0:
+	elif local_pos.z < (paddock_bounds_min.y + 3.5) and fwd.z < 0.0:
 		needs_avoid = true
 
 	if needs_avoid:
-		# Virar suavemente hacia el centro seguro del recinto
-		return _steer_towards(Vector3(0.0, global_position.y, 0.0))
+		var center = _get_habitat_center()
+		center.y = global_position.y
+		return _steer_towards(center)
 
 	return 0.0
 
 func _pick_new_patrol_waypoint() -> void:
-	var wx = randf_range(paddock_bounds_min.x + 3.0, paddock_bounds_max.x - 3.0)
-	var wz = randf_range(paddock_bounds_min.y + 3.0, paddock_bounds_max.y - 3.0)
-	_current_waypoint = Vector3(wx, 0.0, wz)
+	_current_waypoint = _pick_random_habitat_waypoint(3.5)
+	_current_waypoint = _clamp_to_habitat(_current_waypoint, 3.0)
 
 func _handle_autonomous_animation_clips() -> void:
 	var slope_anim_mult: float = 1.0
@@ -668,7 +804,8 @@ func _handle_autonomous_animation_clips() -> void:
 
 	match current_state:
 		State.PATROL_WANDER:
-			_play_anim("Tri_Caminar", 0.35, walk_anim_speed * slope_anim_mult)
+			var move_mult := _spectator_ctrl.get_speed_multiplier() if _spectator_ctrl.is_moving_phase() else 1.0
+			_play_anim("Tri_Caminar", 0.35, walk_anim_speed * slope_anim_mult * move_mult)
 		State.IDLE_OBSERVE:
 			_play_anim("Tri_Idle", 0.4, 0.8)
 		State.ALERT_SMELL:
@@ -681,6 +818,8 @@ func _handle_autonomous_animation_clips() -> void:
 			_play_anim("Tri_Cornada", 0.25, 1.0)
 
 func _process(delta: float) -> void:
+	if not is_in_view:
+		return
 	_time_accum += delta
 
 	# 8. Factores Suavizados para Animación Procedural
@@ -704,6 +843,9 @@ func _process(delta: float) -> void:
 			target_pitch = -0.8 # Cabeza abajo comiendo
 		State.TERRITORIAL_DISPLAY:
 			target_turn = sin(_time_accum * 6.0) * 0.4
+
+	if _spectator_ctrl.wants_head_look() and current_state in [State.PATROL_WANDER, State.IDLE_OBSERVE]:
+		target_turn = _spectator_ctrl.get_head_look_factor(self)
 
 	_turn_factor = move_toward(_turn_factor, target_turn, delta * 3.0)
 	_pitch_factor = move_toward(_pitch_factor, target_pitch, delta * 2.5)
@@ -758,6 +900,14 @@ func _process(delta: float) -> void:
 	_apply_tail_rotation(_bone_tail_1, _tail_1_rest_q, slope_tail_pitch * 0.7, wave_1 + turn_drag)
 	_apply_tail_rotation(_bone_tail_2, _tail_2_rest_q, slope_tail_pitch * 1.0, wave_2 + turn_drag * 1.3)
 	_apply_tail_rotation(_bone_tail_3, _tail_3_rest_q, slope_tail_pitch * 1.3, wave_3 + turn_drag * 1.6)
+
+	var jaw_mode: int = DinoJawController.Mode.CLOSED
+	if current_state == State.EAT_BITE:
+		jaw_mode = DinoJawController.Mode.EAT
+	elif current_state == State.TERRITORIAL_DISPLAY:
+		jaw_mode = DinoJawController.Mode.ROAR
+	_jaw_ctrl.update(delta, jaw_mode, _anim_player)
+	_jaw_ctrl.apply()
 
 func _apply_bone_rotation(bone_idx: int, rest_q: Quaternion, pitch_rad: float, yaw_rad: float, roll_rad: float = 0.0) -> void:
 	if bone_idx < 0:
@@ -856,3 +1006,95 @@ func get_brain_state_name() -> String:
 		State.TERRITORIAL_DISPLAY:
 			return "¡EXHIBICIÓN DE CUERNOS! (Cornada defensiva)"
 	return "DESCONOCIDO"
+
+# ==============================================================================
+# SISTEMA DE CULLING DE ANIMACIONES (OPTIMIZACIÓN DE FPS Y PROCESADOR)
+# ==============================================================================
+func _setup_visibility_culling() -> void:
+	if not fov_culling_enabled:
+		return
+
+	_visibility_notifier = get_node_or_null("VisibilityNotifier")
+	if not _visibility_notifier:
+		_visibility_notifier = VisibleOnScreenNotifier3D.new()
+		_visibility_notifier.name = "VisibilityNotifier"
+		_visibility_notifier.aabb = AABB(
+			Vector3(-CULL_WIDTH_HALF, 0.0, -CULL_LENGTH_HALF),
+			Vector3(CULL_WIDTH_HALF * 2.0, CULL_HEIGHT, CULL_LENGTH_HALF * 2.0)
+		)
+		add_child(_visibility_notifier)
+
+	_visibility_notifier.screen_entered.connect(_on_screen_entered)
+	_visibility_notifier.screen_exited.connect(_on_screen_exited)
+	_update_visibility_state(true)
+
+func _on_screen_entered() -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	_set_animation_active(true)
+
+func _on_screen_exited() -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	_set_animation_active(false)
+
+func _set_animation_active(active: bool) -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	if not fov_culling_enabled:
+		active = true
+
+	if is_in_view == active:
+		return
+
+	is_in_view = active
+	set_process(is_in_view)
+
+	if _skeleton:
+		_skeleton.process_mode = Node.PROCESS_MODE_INHERIT if is_in_view else Node.PROCESS_MODE_DISABLED
+
+	if _anim_player:
+		_anim_player.active = is_in_view
+		if is_in_view:
+			_handle_autonomous_animation_clips()
+
+func _update_visibility_state(_force: bool = false) -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	if not fov_culling_enabled:
+		if not is_in_view:
+			_set_animation_active(true)
+		return
+
+	var cam = get_viewport().get_camera_3d()
+	if not cam:
+		return
+
+	var cam_pos = cam.global_position
+	var dist_sq = global_position.distance_squared_to(cam_pos)
+
+	if dist_sq > max_animation_distance * max_animation_distance:
+		_set_animation_active(false)
+		return
+
+	if _visibility_notifier and _visibility_notifier.is_on_screen():
+		_set_animation_active(true)
+		return
+
+	if cam.is_position_in_frustum(global_position):
+		_set_animation_active(true)
+		return
+
+	var fwd = -global_transform.basis.z
+	var up = global_transform.basis.y
+	if cam.is_position_in_frustum(global_position + fwd * CULL_LENGTH_HALF):
+		_set_animation_active(true)
+		return
+	if cam.is_position_in_frustum(global_position - fwd * CULL_LENGTH_HALF):
+		_set_animation_active(true)
+		return
+	if cam.is_position_in_frustum(global_position + up * CULL_HEIGHT):
+		_set_animation_active(true)
+		return
+
+	_set_animation_active(false)

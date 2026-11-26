@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/modelos/helecho_prehistorico.glb" id="1_model"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_fern"]
+height = 1
+radius = 0.5
+
+[node name="Helecho_prehistorico" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 3
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+shape = SubResource("CylinderShape3D_fern")

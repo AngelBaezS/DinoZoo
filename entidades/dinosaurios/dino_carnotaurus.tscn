@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dinosaurios/dino_carnotaurus.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/modelos/Carnotaurus.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_torso"]
+radius = 0.9
+height = 4.2
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_legs"]
+height = 1.55
+radius = 0.72
+
+[node name="Carnotaurus" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 3
+floor_constant_speed = true
+floor_max_angle = 0.872665
+floor_snap_length = 0.7
+script = ExtResource("1_script")
+
+[node name="CollisionTorso" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 1.55, 0)
+shape = SubResource("CapsuleShape3D_torso")
+
+[node name="CollisionLegs" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.775, 0)
+shape = SubResource("CylinderShape3D_legs")
+
+[node name="VisualModel" type="Node3D" parent="."]
+transform = Transform3D(-3.8, 0, 0, 0, 3.8, 0, 0, 0, -3.8, 0, 0, 0)
+
+[node name="Model" parent="VisualModel" instance=ExtResource("2_model")]

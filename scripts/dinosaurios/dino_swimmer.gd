@@ -7,15 +7,15 @@ extends CharacterBody3D
 @export var is_autonomous: bool = true
 
 # Velocidades de nado (adaptadas a depredador de 15 metros en recinto de 100x100)
-@export var swim_speed: float = 3.6
-@export var sprint_speed: float = 7.2
+@export var swim_speed: float = 0.9
+@export var sprint_speed: float = 1.8
 @export var reverse_speed: float = 1.4
 @export var turn_speed: float = 0.95
-@export var vertical_speed: float = 2.4
+@export var vertical_speed: float = 0.6
 @export var water_drag: float = 3.5
 
 # Límite de flotabilidad: evita que suba más de la mitad del cuerpo
-@export var surface_submerged_offset: float = 5
+@export var surface_submerged_offset: float = 1.25
 
 # Color base de fallback (solo si la malla no trae materiales pintados)
 @export var dark_gray_color: Color = Color(0.18, 0.20, 0.23, 1.0)
@@ -41,7 +41,7 @@ extends CharacterBody3D
 # Parámetros del Cerebro Sensorial Autónomo (Opción A: Depredador)
 @export var smell_radius: float = 60.0       # Radio 360° de olfato
 @export var vision_angle_deg: float = 130.0  # Cono de visión frontal (apertura total)
-@export var eat_distance: float = 6.0        # Distancia para morder comida
+@export var eat_distance: float = 4.5        # Distancia para morder comida
 
 # Límites del estanque para la navegación autónoma (Paddock 100x100 con foso de 87x87m y 13m de profundidad)
 @export var pool_bounds_min: Vector3 = Vector3(-35.0, 5.0, -35.0)
@@ -59,11 +59,25 @@ enum State {
 
 @onready var visual_model: Node3D = get_node_or_null("VisualModel")
 
+## Optimización de Rendimiento y Culling de Animaciones en FOV
+@export_group("Optimización FOV / Culling")
+@export var fov_culling_enabled: bool = true
+@export var max_animation_distance: float = 160.0
+
+var is_in_view: bool = true
+var _visibility_notifier: VisibleOnScreenNotifier3D
+var _visibility_check_timer: float = 0.0
+const VISIBILITY_CHECK_INTERVAL: float = 0.12
+const CULL_LENGTH_HALF: float = 9.0
+const CULL_HEIGHT: float = 5.0
+const CULL_WIDTH_HALF: float = 3.5
+
 var current_state: State = State.PATROL_WANDER:
 	set(value):
 		if current_state != value:
 			current_state = value
-			print("[Cerebro Mosasaurio] Estado: ", get_brain_state_name())
+			if not has_meta("_managed_by_park_optimizer"):
+				print("[Cerebro Mosasaurio] Estado: ", get_brain_state_name())
 var current_food_target: Node3D = null
 
 var _anim_player: AnimationPlayer
@@ -84,6 +98,8 @@ var _bone_neck: int = -1
 var _bone_chest: int = -1
 var _bone_spine: int = -1
 var _bone_jaw: int = -1
+var _jaw_ctrl: DinoJawController = DinoJawController.new()
+var _spectator_ctrl: DinoSpectatorController = DinoSpectatorController.new()
 var _bone_tail_1: int = -1
 var _bone_tail_2: int = -1
 var _bone_tail_3: int = -1
@@ -110,12 +126,16 @@ var _flipper_hind_r_rest_q: Quaternion = Quaternion.IDENTITY
 
 func _ready() -> void:
 	add_to_group("dino_aquatic")
+	add_to_group("mosasaurus")
+	add_to_group("dinosaurios")
 	if not water_manager:
 		water_manager = get_tree().get_first_node_in_group("water_manager") as WaterManager
 	
 	_apply_dino_material()
 	_find_animation_player()
 	_find_skeleton()
+	_spectator_ctrl.setup("mosasaurus", self)
+	_setup_visibility_culling()
 	_pick_new_patrol_waypoint()
 	_play_anim("Mosa_Nadar", 0.0)
 	print("[Cerebro Mosasaurio] Inicializado con animación procedural completa | Estado inicial: ", get_brain_state_name())
@@ -178,6 +198,7 @@ func _find_skeleton() -> void:
 			_spine_rest_q = _skeleton.get_bone_rest(_bone_spine).basis.get_rotation_quaternion()
 		if _bone_jaw >= 0:
 			_jaw_rest_q = _skeleton.get_bone_rest(_bone_jaw).basis.get_rotation_quaternion()
+		_jaw_ctrl.setup(_skeleton, "mosasaurus", _anim_player)
 		if _bone_tail_1 >= 0:
 			_tail_1_rest_q = _skeleton.get_bone_rest(_bone_tail_1).basis.get_rotation_quaternion()
 		if _bone_tail_2 >= 0:
@@ -200,6 +221,9 @@ func _play_anim(anim_name: String, blend: float = 0.3, custom_speed: float = -1.
 		_find_animation_player()
 		if not _anim_player:
 			return
+
+	if not is_in_view:
+		return
 
 	var target_anim = ""
 	if _anim_player.has_animation(anim_name):
@@ -224,8 +248,18 @@ func _play_anim(anim_name: String, blend: float = 0.3, custom_speed: float = -1.
 			_anim_player.play(target_anim, blend)
 
 func _physics_process(delta: float) -> void:
+	# Comprobación periódica de campo de visión para optimizar CPU
+	if fov_culling_enabled:
+		_visibility_check_timer -= delta
+		if _visibility_check_timer <= 0.0:
+			_visibility_check_timer = VISIBILITY_CHECK_INTERVAL
+			_update_visibility_state()
 	if not water_manager:
-		water_manager = get_tree().get_first_node_in_group("water_manager") as WaterManager
+		var hab = _get_habitat_node()
+		if hab:
+			water_manager = hab.get_node_or_null("WaterSurface") as WaterManager
+		if not water_manager:
+			water_manager = get_tree().get_first_node_in_group("water_manager") as WaterManager
 		if not water_manager:
 			return
 
@@ -295,17 +329,7 @@ func _physics_process(delta: float) -> void:
 	_handle_autonomous_animation_clips()
 
 func _sensory_scan_food() -> void:
-	var food_items = get_tree().get_nodes_in_group("dino_food")
-	var closest_food: Node3D = null
-	var closest_dist: float = smell_radius
-
-	for item in food_items:
-		if is_instance_valid(item) and item is Node3D:
-			var d = global_position.distance_to(item.global_position)
-			if d < closest_dist:
-				closest_dist = d
-				closest_food = item
-
+	var closest_food := DinoFood.find_nearest_for(self, DinoFood.DIET_MEAT, smell_radius, _get_habitat_node(), pool_bounds_min, pool_bounds_max)
 	current_food_target = closest_food
 
 	# Transiciones de estado sensorial
@@ -330,11 +354,40 @@ func _sensory_scan_food() -> void:
 			current_state = State.IDLE_OBSERVE
 			_state_timer = randf_range(3.0, 5.0)
 
-func _update_brain_state(_delta: float, max_allowed_y: float) -> Dictionary:
+func _update_brain_state(delta: float, max_allowed_y: float) -> Dictionary:
 	var turn: float = 0.0
 	var forward: float = 0.0
 	var vertical: float = 0.0
 	var speed: float = swim_speed
+
+	var busy_with_food := is_instance_valid(current_food_target) or (current_state in [State.ALERT_SMELL, State.PURSUE_FOOD, State.EAT_BITE])
+	_spectator_ctrl.update(delta, self, _get_habitat_node(), pool_bounds_min, pool_bounds_max, busy_with_food, max_allowed_y)
+
+	if _spectator_ctrl.is_controlling():
+		_current_waypoint = _spectator_ctrl.get_move_target(self)
+		var steer = _steer_towards(_current_waypoint, max_allowed_y)
+		if _spectator_ctrl.get_phase() == DinoSpectatorController.Phase.SHOWCASING:
+			current_state = State.CURIOUS_VISITOR
+			speed = swim_speed * _spectator_ctrl.get_speed_multiplier()
+			forward = 0.9
+			turn = steer.turn * 0.9
+			vertical = steer.vertical
+			_observe_look_angle = _spectator_ctrl.get_head_look_factor(self)
+		else:
+			current_state = State.PATROL_WANDER
+			speed = swim_speed * _spectator_ctrl.get_speed_multiplier()
+			forward = 1.0
+			turn = steer.turn
+			vertical = steer.vertical
+		var spec_wall = _compute_wall_avoidance(max_allowed_y)
+		if abs(spec_wall) > 0.05:
+			turn = spec_wall
+		return {
+			"turn": clamp(turn, -1.0, 1.0),
+			"forward": clamp(forward, -1.0, 1.0),
+			"vertical": clamp(vertical, -1.0, 1.0),
+			"speed": speed
+		}
 
 	match current_state:
 		State.PATROL_WANDER:
@@ -412,7 +465,8 @@ func _update_brain_state(_delta: float, max_allowed_y: float) -> Dictionary:
 			speed = swim_speed * 0.85
 			forward = 0.9
 			# Deslizarse a lo largo del gran ventanal de observación subacuático (+X = 49.6)
-			var glass_target = Vector3(34.0, 9.5, sign(velocity.z + 0.1) * 26.0)
+			var glass_local = Vector3(34.0, 9.5, sign(velocity.z + 0.1) * 26.0)
+			var glass_target = _to_habitat_global(glass_local)
 			var steer = _steer_towards(glass_target, max_allowed_y)
 			turn = steer.turn * 0.85
 			vertical = steer.vertical
@@ -431,6 +485,30 @@ func _update_brain_state(_delta: float, max_allowed_y: float) -> Dictionary:
 		"vertical": clamp(vertical, -1.0, 1.0),
 		"speed": speed
 	}
+
+func _get_habitat_node() -> Node3D:
+	var p = get_parent()
+	while p:
+		if p is Node3D and (p.name.begins_with("Habitat") or p == get_tree().current_scene or p.get_parent() == get_tree().root):
+			return p as Node3D
+		p = p.get_parent()
+	if get_parent() is Node3D:
+		return get_parent() as Node3D
+	return null
+
+func _to_habitat_local(world_pos: Vector3) -> Vector3:
+	var hab = _get_habitat_node()
+	return hab.to_local(world_pos) if hab else world_pos
+
+func _to_habitat_global(local_pos: Vector3) -> Vector3:
+	var hab = _get_habitat_node()
+	return hab.to_global(local_pos) if hab else local_pos
+
+func _get_habitat_center() -> Vector3:
+	var hab = _get_habitat_node()
+	if hab:
+		return hab.global_position
+	return Vector3.ZERO
 
 func _steer_towards(target_pos: Vector3, max_allowed_y: float) -> Dictionary:
 	var to_target = target_pos - global_position
@@ -456,29 +534,35 @@ func _compute_wall_avoidance(max_allowed_y: float) -> float:
 		return 0.0
 
 	var fwd = -global_transform.basis.z
+	var hab = _get_habitat_node()
+	if hab:
+		fwd = hab.global_transform.basis.inverse() * fwd
+	var local_pos = _to_habitat_local(global_position)
 	var needs_avoid = false
 
-	if global_position.x > (pool_bounds_max.x - 4.5) and fwd.x > 0.0:
+	if local_pos.x > (pool_bounds_max.x - 4.5) and fwd.x > 0.0:
 		needs_avoid = true
-	elif global_position.x < (pool_bounds_min.x + 4.5) and fwd.x < 0.0:
+	elif local_pos.x < (pool_bounds_min.x + 4.5) and fwd.x < 0.0:
 		needs_avoid = true
 
-	if global_position.z > (pool_bounds_max.z - 4.5) and fwd.z > 0.0:
+	if local_pos.z > (pool_bounds_max.z - 4.5) and fwd.z > 0.0:
 		needs_avoid = true
-	elif global_position.z < (pool_bounds_min.z + 4.5) and fwd.z < 0.0:
+	elif local_pos.z < (pool_bounds_min.z + 4.5) and fwd.z < 0.0:
 		needs_avoid = true
 
 	if needs_avoid:
-		var steer = _steer_towards(Vector3(0.0, global_position.y, 0.0), max_allowed_y)
+		var center = _get_habitat_center()
+		center.y = global_position.y
+		var steer = _steer_towards(center, max_allowed_y)
 		return steer.turn
 
 	return 0.0
 
 func _pick_new_patrol_waypoint() -> void:
-	var wx = randf_range(pool_bounds_min.x + 1.5, pool_bounds_max.x - 1.5)
-	var wy = randf_range(pool_bounds_min.y, pool_bounds_max.y)
-	var wz = randf_range(pool_bounds_min.z + 1.5, pool_bounds_max.z - 1.5)
-	_current_waypoint = Vector3(wx, wy, wz)
+	var wx = randf_range(pool_bounds_min.x + 3.0, pool_bounds_max.x - 3.0)
+	var wy = randf_range(pool_bounds_min.y + 1.0, pool_bounds_max.y - 0.5)
+	var wz = randf_range(pool_bounds_min.z + 3.0, pool_bounds_max.z - 3.0)
+	_current_waypoint = _to_habitat_global(Vector3(wx, wy, wz))
 
 func _handle_autonomous_animation_clips() -> void:
 	match current_state:
@@ -496,10 +580,12 @@ func _handle_autonomous_animation_clips() -> void:
 			_play_anim("Mosa_Nadar", 0.4, 0.5)
 
 func _process(delta: float) -> void:
+	if not is_in_view:
+		return
 	_time_accum += delta
 
 	# Cota superior real del agua para evitar inclinaciones erróneas
-	var water_y: float = 15.0
+	var water_y: float = _to_habitat_global(Vector3(0.0, 15.0, 0.0)).y
 	if water_manager:
 		water_y = water_manager.get_water_height_at(Vector2(global_position.x, global_position.z))
 	var max_allowed_y: float = water_y - surface_submerged_offset
@@ -529,6 +615,9 @@ func _process(delta: float) -> void:
 		State.EAT_BITE:
 			target_turn = 0.0
 			target_pitch = 0.0
+
+	if _spectator_ctrl.wants_head_look() and current_state in [State.PATROL_WANDER, State.CURIOUS_VISITOR, State.IDLE_OBSERVE]:
+		target_turn = _spectator_ctrl.get_head_look_factor(self)
 
 	# Interpolación inercial elástica
 	_turn_factor = move_toward(_turn_factor, target_turn, delta * 3.2)
@@ -593,21 +682,10 @@ func _process(delta: float) -> void:
 		_skeleton.set_bone_pose_rotation(_bone_flipper_front_l, _flipper_front_l_rest_q * q_fl)
 		_skeleton.set_bone_pose_rotation(_bone_flipper_front_r, _flipper_front_r_rest_q * q_fr)
 
-	# D) Mecánica Procedural de la Mandíbula (Jaw)
-	if _bone_jaw >= 0:
-		# El modelo 3D original reposa con la boca abierta (+22.25°).
-		# Aplicamos rotación compensatoria de -23.0° para mantener la boca cerrada en nado y reposo.
-		var jaw_closed_offset_rad: float = deg_to_rad(-23.0)
-		var jaw_open_rad: float = 0.0
-		if current_state == State.EAT_BITE:
-			# Mordisco cíclico y masticación al devorar presa
-			jaw_open_rad = max(0.0, sin(_time_accum * 8.5)) * deg_to_rad(28.0)
-		elif current_state == State.ALERT_SMELL:
-			# Pequeño muestreo olfativo en la corriente de agua
-			jaw_open_rad = (sin(_time_accum * 4.0) * 0.5 + 0.5) * deg_to_rad(4.5)
-		
-		var q_jaw = Quaternion(Vector3.RIGHT, jaw_closed_offset_rad + jaw_open_rad)
-		_skeleton.set_bone_pose_rotation(_bone_jaw, _jaw_rest_q * q_jaw)
+	# D) Mecánica Procedural de la Mandíbula (Cerrada en nado/reposo; abre al morder, saltar o de vez en cuando)
+	var jaw_mode: int = DinoJawController.Mode.EAT if current_state == State.EAT_BITE else DinoJawController.Mode.CLOSED
+	_jaw_ctrl.update(delta, jaw_mode, _anim_player)
+	_jaw_ctrl.apply()
 
 func _apply_bone_rotation(bone_idx: int, rest_q: Quaternion, pitch_rad: float, yaw_rad: float) -> void:
 	if bone_idx < 0:
@@ -637,3 +715,95 @@ func get_brain_state_name() -> String:
 		State.CURIOUS_VISITOR:
 			return "OBSERVANDO VISITANTES (Frente al cristal)"
 	return "DESCONOCIDO"
+
+# ==============================================================================
+# SISTEMA DE CULLING DE ANIMACIONES (OPTIMIZACIÓN DE FPS Y PROCESADOR)
+# ==============================================================================
+func _setup_visibility_culling() -> void:
+	if not fov_culling_enabled:
+		return
+
+	_visibility_notifier = get_node_or_null("VisibilityNotifier")
+	if not _visibility_notifier:
+		_visibility_notifier = VisibleOnScreenNotifier3D.new()
+		_visibility_notifier.name = "VisibilityNotifier"
+		_visibility_notifier.aabb = AABB(
+			Vector3(-CULL_WIDTH_HALF, -2.5, -CULL_LENGTH_HALF),
+			Vector3(CULL_WIDTH_HALF * 2.0, CULL_HEIGHT, CULL_LENGTH_HALF * 2.0)
+		)
+		add_child(_visibility_notifier)
+
+	_visibility_notifier.screen_entered.connect(_on_screen_entered)
+	_visibility_notifier.screen_exited.connect(_on_screen_exited)
+	_update_visibility_state(true)
+
+func _on_screen_entered() -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	_set_animation_active(true)
+
+func _on_screen_exited() -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	_set_animation_active(false)
+
+func _set_animation_active(active: bool) -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	if not fov_culling_enabled:
+		active = true
+
+	if is_in_view == active:
+		return
+
+	is_in_view = active
+	set_process(is_in_view)
+
+	if _skeleton:
+		_skeleton.process_mode = Node.PROCESS_MODE_INHERIT if is_in_view else Node.PROCESS_MODE_DISABLED
+
+	if _anim_player:
+		_anim_player.active = is_in_view
+		if is_in_view:
+			_handle_autonomous_animation_clips()
+
+func _update_visibility_state(_force: bool = false) -> void:
+	if has_meta("_managed_by_park_optimizer"):
+		return
+	if not fov_culling_enabled:
+		if not is_in_view:
+			_set_animation_active(true)
+		return
+
+	var cam = get_viewport().get_camera_3d()
+	if not cam:
+		return
+
+	var cam_pos = cam.global_position
+	var dist_sq = global_position.distance_squared_to(cam_pos)
+
+	if dist_sq > max_animation_distance * max_animation_distance:
+		_set_animation_active(false)
+		return
+
+	if _visibility_notifier and _visibility_notifier.is_on_screen():
+		_set_animation_active(true)
+		return
+
+	if cam.is_position_in_frustum(global_position):
+		_set_animation_active(true)
+		return
+
+	var fwd = -global_transform.basis.z
+	var up = global_transform.basis.y
+	if cam.is_position_in_frustum(global_position + fwd * CULL_LENGTH_HALF):
+		_set_animation_active(true)
+		return
+	if cam.is_position_in_frustum(global_position - fwd * CULL_LENGTH_HALF):
+		_set_animation_active(true)
+		return
+	if cam.is_position_in_frustum(global_position + up * CULL_HEIGHT):
+		_set_animation_active(true)
+		return
+
+	_set_animation_active(false)

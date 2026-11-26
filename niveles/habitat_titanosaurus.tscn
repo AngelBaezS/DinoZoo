@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://vda5xoihae5h"]
+
+[ext_resource type="Script" uid="uid://cs1q2ndobwgqy" path="res://scripts/controladores/controlador_habitat_titanosaurus.gd" id="1_titano_ctrl"]
+[ext_resource type="PackedScene" path="res://entidades/dinosaurios/dino_titanosaurus.tscn" id="2_titano_dino"]
+[ext_resource type="PackedScene" uid="uid://bi3co6tb8xrpm" path="res://assets/habitats/dinosaur_enclosure_100x100.glb" id="3_enclosure"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/arboles/prop_arbol_frondoso.tscn" id="4_tree"]
+[ext_resource type="PackedScene" path="res://assets/libreria_assets/props/rocas/prop_roca_grande.tscn" id="5_rock"]
+
+[node name="HabitatTitanosaurus" type="Node3D" unique_id=1302544413]
+script = ExtResource("1_titano_ctrl")
+
+[node name="Enclosure" parent="." unique_id=648600109 instance=ExtResource("3_enclosure")]
+
+[node name="DinoTitanosaurus" parent="." unique_id=1066525056 instance=ExtResource("2_titano_dino")]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -14, 0.12, 15)
+
+[node name="DinoTitanosaurus2" parent="." unique_id=1066525057 instance=ExtResource("2_titano_dino")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -18, 0.12, -18)
+
+[node name="Arbol1" parent="." instance=ExtResource("4_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 22)
+
+[node name="Arbol2" parent="." instance=ExtResource("4_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 25)
+
+[node name="Roca1" parent="." instance=ExtResource("5_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0, 5)

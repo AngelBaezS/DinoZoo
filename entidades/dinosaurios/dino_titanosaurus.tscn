@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://bw5ypmixhcbim"]
+
+[ext_resource type="Script" uid="uid://c5kr1leln758h" path="res://scripts/dinosaurios/dino_titanosaurus.gd" id="1_titano_script"]
+[ext_resource type="PackedScene" uid="uid://bpx416nisv26l" path="res://assets/modelos/Titanosaurus.glb" id="2_titano_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_titano"]
+radius = 1.8
+height = 8.5
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_legs"]
+height = 2.9
+radius = 1.5
+
+[node name="DinoTitanosaurus" type="CharacterBody3D" unique_id=1066525056]
+collision_layer = 2
+collision_mask = 3
+floor_constant_speed = true
+floor_max_angle = 0.872665
+floor_snap_length = 0.9
+script = ExtResource("1_titano_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=432588414]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 2.9, 0)
+shape = SubResource("CapsuleShape3D_titano")
+
+[node name="CollisionLegs" type="CollisionShape3D" parent="." unique_id=432588415]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+shape = SubResource("CylinderShape3D_legs")
+
+[node name="VisualModel" type="Node3D" parent="." unique_id=1380354839]
+transform = Transform3D(-1.1, 0, -9.61642e-08, 0, 1.1, 0, 9.61642e-08, 0, -1.1, 0, 0, 0)
+
+[node name="Titanosaurus" parent="VisualModel" unique_id=1478996392 instance=ExtResource("2_titano_model")]
